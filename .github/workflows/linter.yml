@@ -1,0 +1,59 @@
+## Linter GitHub Actions ##
+name: Lint Code Base
+
+# Documentation:
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions
+
+# Start the job on all push #
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+#concurrency:
+#  group: ${{ github.workflow }}
+#  cancel-in-progress: true
+
+permissions: read-all
+
+# Set the Job #
+jobs:
+  build:
+    # Name the Job
+    name: Lint Code Base
+    # Set the agent to run on
+    runs-on: ubuntu-24.04
+
+    # Load all steps #
+    steps:
+      # Checkout the code base #
+      - name: Harden Runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: block
+          disable-telemetry: true
+          allowed-endpoints: 
+            api.github.com:443
+            api0.prismacloud.io:443
+            files.pythonhosted.org:443
+            github.com:443
+            proxy.golang.org:443
+            pypi.org:443
+            zrdfepirv2blaprdstr01a.blob.core.windows.net:443
+          
+      - name: Checkout Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
+
+      # Run Linter against code base #
+      - name: Lint Code Base
+        uses: github/super-linter/slim@b807e99ddd37e444d189cfd2c2ca1274d8ae8ef1 # v7
+        #uses: docker://ghcr.io/github/super-linter:slim-v4
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JAVASCRIPT_DEFAULT_STYLE: prettier
+
