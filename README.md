@@ -2,7 +2,7 @@
 
 A single-file web app for uploading, analyzing, and visualizing [Synology Hyper Backup](https://www.synology.com/en-global/dsm/feature/hyper_backup) configuration files (`synobackup.conf`). Gives you an at-a-glance view of your backup coverage, integrity check configuration, and actionable recommendations — without logging into DSM.
 
-![Dark mode screenshot](docs/screenshot-dark.png)
+![Dark mode screenshot](screenshot-dark.png)
 
 ---
 
