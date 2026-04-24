@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SynoAnalyzer — Backup Config Visualizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+[data-theme="dark"]{
+  --bg:#07091a;--bg1:#0c1226;--bg2:#111930;--bg3:#162040;
+  --border:#1c2d4a;--borderL:#162440;
+  --t1:#e8eeff;--t2:#8ba3c5;--t3:#3f5878;
+  --sky:#38bdf8;--skyD:rgba(56,189,248,.12);
+  --green:#34d399;--greenD:rgba(52,211,153,.12);
+  --amber:#fbbf24;--amberD:rgba(251,191,36,.12);
+  --rose:#fb7185;--roseD:rgba(251,113,133,.12);
+  --purple:#a78bfa;--purpleD:rgba(167,139,250,.12);
+  --teal:#2dd4bf;--tealD:rgba(45,212,191,.12);
+  --orange:#fb923c;--orangeD:rgba(251,146,60,.12);
+  --glow:rgba(56,189,248,.05);
+}
+[data-theme="light"]{
+  --bg:#f0f4fc;--bg1:#e6edf8;--bg2:#ffffff;--bg3:#f8faff;
+  --border:#cdd8ee;--borderL:#dce6f5;
+  --t1:#0f1b35;--t2:#4a6585;--t3:#96afc8;
+  --sky:#0284c7;--skyD:rgba(2,132,199,.08);
+  --green:#059669;--greenD:rgba(5,150,105,.08);
+  --amber:#d97706;--amberD:rgba(217,119,6,.08);
+  --rose:#e11d48;--roseD:rgba(225,29,72,.08);
+  --purple:#7c3aed;--purpleD:rgba(124,58,237,.08);
+  --teal:#0d9488;--tealD:rgba(13,148,136,.08);
+  --orange:#ea580c;--orangeD:rgba(234,88,12,.08);
+  --glow:rgba(2,132,199,.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;transition:background .3s,color .3s;font-size:14px;line-height:1.5;}
+
+header{position:sticky;top:0;z-index:100;background:var(--bg1);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(8px);}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--sky),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;box-shadow:0 0 16px rgba(56,189,248,.3);}
+.logo-text{font-size:16px;font-weight:600;color:var(--t1);}
+.logo-sub{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:.04em;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.file-badge{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t3);background:var(--bg2);border:1px solid var(--border);padding:3px 10px;border-radius:100px;display:none;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btn-icon{width:34px;height:34px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:15px;transition:all .2s;user-select:none;}
+.btn-icon:hover{background:var(--bg3);color:var(--t1);border-color:var(--sky);}
+.btn-reset{display:none;}
+
+main{max-width:1280px;margin:0 auto;padding:32px 28px;}
+
+#upload-view{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 120px);gap:20px;}
+.upload-card{background:var(--bg1);border:2px dashed var(--border);border-radius:20px;width:100%;max-width:560px;padding:52px 40px;display:flex;flex-direction:column;align-items:center;gap:20px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.upload-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,var(--glow),transparent 70%);pointer-events:none;}
+.upload-card:hover,.upload-card.drag-over{border-color:var(--sky);background:var(--bg2);transform:translateY(-2px);box-shadow:0 16px 48px rgba(56,189,248,.08);}
+.upload-card.drag-over{border-style:solid;}
+.upload-icon{width:64px;height:64px;border-radius:16px;background:var(--skyD);border:1px solid rgba(56,189,248,.2);display:flex;align-items:center;justify-content:center;font-size:28px;}
+.upload-title{font-size:18px;font-weight:600;color:var(--t1);}
+.upload-sub{font-size:13px;color:var(--t3);text-align:center;line-height:1.6;}
+.upload-hint{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:100px;}
+input[type=file]{display:none;}
+.divider-or{display:flex;align-items:center;gap:12px;width:100%;max-width:560px;}
+.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border);}
+.divider-or span{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
+.btn-sample{background:var(--bg2);border:1px solid var(--border);color:var(--t2);font-size:13px;font-weight:500;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:8px;}
+.btn-sample:hover{border-color:var(--sky);color:var(--sky);background:var(--skyD);}
+
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:26px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;}
+.stat-label{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:.05em;text-transform:uppercase;}
+.stat-value{font-size:26px;font-weight:700;color:var(--t1);line-height:1.1;}
+.stat-meta{font-size:11px;color:var(--t2);}
+
+.tab-bar{display:flex;gap:3px;margin-bottom:24px;background:var(--bg1);border-radius:12px;padding:4px;border:1px solid var(--border);}
+.tab{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;color:var(--t3);transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.tab:hover{color:var(--t2);}
+.tab.active{background:var(--bg2);color:var(--t1);box-shadow:0 1px 4px rgba(0,0,0,.15);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+section{margin-bottom:32px;}
+.section-title{font-size:11px;font-weight:600;color:var(--t2);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.section-title::before{content:'';width:3px;height:14px;background:var(--sky);border-radius:2px;flex-shrink:0;}
+
+.tasks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:13px;}
+.task-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px 20px;transition:all .25s;position:relative;overflow:hidden;}
+.task-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.15);border-color:var(--borderL);}
+.task-card-top{height:3px;position:absolute;top:0;left:0;right:0;border-radius:16px 16px 0 0;}
+.task-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.task-name{font-size:14px;font-weight:600;color:var(--t1);padding-right:8px;}
+.dst-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:100px;border:1px solid;white-space:nowrap;flex-shrink:0;}
+.dst-s3{color:var(--orange);border-color:var(--orange);background:var(--orangeD);}
+.dst-local{color:var(--teal);border-color:var(--teal);background:var(--tealD);}
+
+.folders-label{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+.folder-row{display:flex;align-items:center;gap:6px;padding:2px 0;}
+.folder-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.folder-path{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.folder-type{font-size:9px;color:var(--t3);margin-left:auto;flex-shrink:0;padding-left:4px;}
+.more-folders{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;padding:2px 0;}
+.task-folders{margin-bottom:10px;}
+.task-apps{margin-bottom:10px;}
+.apps-row{display:flex;flex-wrap:wrap;gap:4px;}
+.app-chip{font-size:9px;font-family:'JetBrains Mono',monospace;background:var(--bg1);border:1px solid var(--border);color:var(--t3);padding:2px 7px;border-radius:100px;}
+
+.task-flags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.flag{font-size:11px;display:flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;font-weight:500;}
+.flag-good{background:var(--greenD);color:var(--green);}
+.flag-warn{background:var(--amberD);color:var(--amber);}
+.flag-bad{background:var(--roseD);color:var(--rose);}
+.flag-info{background:var(--bg1);color:var(--t2);}
+
+.task-bottom{border-top:1px solid var(--borderL);padding-top:10px;margin-top:2px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.task-bottom-item{display:flex;flex-direction:column;gap:2px;}
+.tbi-label{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
+.tbi-value{font-size:12px;color:var(--t2);}
+.tbi-value.good{color:var(--green);}
+.tbi-value.warn{color:var(--amber);}
+.tbi-value.bad{color:var(--rose);}
+
+.coverage-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;overflow-x:auto;}
+.cov-table{width:100%;border-collapse:collapse;min-width:560px;}
+.cov-th{padding:11px 16px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t2);font-weight:600;text-align:left;border-bottom:1px solid var(--border);background:var(--bg1);letter-spacing:.04em;}
+.cov-th.center{text-align:center;}
+.cov-td{padding:10px 16px;border-bottom:1px solid var(--borderL);vertical-align:middle;}
+.cov-td.center{text-align:center;}
+.cov-dir-path{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--t2);}
+.cov-check{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:12px;vertical-align:middle;margin-right:4px;}
+.cov-yes{background:var(--greenD);}
+.cov-no{background:var(--bg1);opacity:.4;}
+.task-name-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:100px;background:var(--bg1);border:1px solid var(--border);color:var(--t2);display:inline-block;margin:1px;}
+.cov-child-arrow{color:var(--t3);font-size:12px;flex-shrink:0;}
+.cov-via{font-size:9px;color:var(--t3);background:var(--bg1);border:1px solid var(--border);padding:1px 6px;border-radius:100px;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.cov-group-count{font-size:9px;color:var(--sky);background:var(--skyD);border:1px solid rgba(56,189,248,.2);padding:1px 7px;border-radius:100px;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.cov-path-detail{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;padding-left:22px;}
+.cov-path-chip{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--t3);background:var(--bg1);border:1px solid var(--border);padding:1px 6px;border-radius:4px;}
+
+.info-note{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+.integrity-list{display:flex;flex-direction:column;gap:7px;}
+.integ-row{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:12px;}
+.integ-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.integ-name{font-size:13px;font-weight:500;color:var(--t1);min-width:160px;}
+.integ-bar-wrap{flex:1;height:5px;background:var(--bg1);border-radius:3px;overflow:hidden;min-width:60px;}
+.integ-bar{height:100%;border-radius:3px;}
+.integ-meta{font-size:11px;color:var(--t3);white-space:nowrap;text-align:right;min-width:90px;}
+
+.dirs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.dir-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.dir-icon-box{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.dir-info{flex:1;min-width:0;}
+.dir-path{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dir-used-by{font-size:10px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dir-type-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:100px;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+.dt-home{background:var(--skyD);color:var(--sky);}
+.dt-media{background:var(--purpleD);color:var(--purple);}
+.dt-vm{background:var(--roseD);color:var(--rose);}
+.dt-backup{background:var(--amberD);color:var(--amber);}
+.dt-apps{background:var(--tealD);color:var(--teal);}
+.dt-general{background:var(--bg1);color:var(--t2);}
+
+.suggestions-list{display:flex;flex-direction:column;gap:10px;}
+.suggestion{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;gap:13px;align-items:flex-start;transition:transform .2s;}
+.suggestion:hover{transform:translateX(3px);}
+.sug-icon{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.sug-body{flex:1;}
+.sug-title{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sug-detail{font-size:12px;color:var(--t2);line-height:1.6;}
+.sug-tasks{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.sug-tag{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:100px;background:var(--bg1);border:1px solid var(--border);color:var(--t2);}
+.sug-high{border-left:3px solid var(--rose);}
+.sug-high .sug-icon{background:var(--roseD);}
+.sug-medium{border-left:3px solid var(--amber);}
+.sug-medium .sug-icon{background:var(--amberD);}
+.sug-low{border-left:3px solid var(--sky);}
+.sug-low .sug-icon{background:var(--skyD);}
+.sug-good{border-left:3px solid var(--green);}
+.sug-good .sug-icon{background:var(--greenD);}
+.sev-pill{font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;padding:2px 7px;border-radius:100px;}
+.pill-high{background:var(--roseD);color:var(--rose);}
+.pill-medium{background:var(--amberD);color:var(--amber);}
+.pill-low{background:var(--skyD);color:var(--sky);}
+.pill-good{background:var(--greenD);color:var(--green);}
+
+#dashboard-view{display:none;}
+.empty{text-align:center;padding:40px;color:var(--t3);font-size:13px;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--t3);}
+@media(max-width:900px){.stats-bar{grid-template-columns:repeat(3,1fr);}main{padding:20px 16px;}header{padding:0 16px;}}
+@media(max-width:600px){.stats-bar{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">S</div>
+    <div>
+      <div class="logo-text">SynoAnalyzer</div>
+      <div class="logo-sub">Hyper Backup config visualizer</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="file-badge" id="file-badge"></span>
+    <div class="btn-icon btn-reset" id="btn-reset" title="Load new file" onclick="resetApp()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+    </div>
+    <div class="btn-icon" id="btn-theme" title="Toggle theme" onclick="toggleTheme()">🌙</div>
+  </div>
+</header>
+
+<main>
+<div id="upload-view">
+  <div class="upload-card" id="drop-zone"
+       onclick="document.getElementById('file-input').click()"
+       ondragover="handleDragOver(event)"
+       ondragleave="handleDragLeave(event)"
+       ondrop="handleDrop(event)">
+    <div class="upload-icon">📂</div>
+    <div class="upload-title">Upload synobackup.conf</div>
+    <div class="upload-sub">Drop your Synology Hyper Backup config file here,<br>or click to browse</div>
+    <div class="upload-hint">.conf &nbsp;·&nbsp; .json &nbsp;·&nbsp; .txt</div>
+  </div>
+  <input type="file" id="file-input" accept=".conf,.json,.txt,text/*" onchange="handleFileSelect(event)">
+  <div class="divider-or" style="max-width:560px;"><span>or</span></div>
+  <button class="btn-sample" onclick="loadSample()">✨ &nbsp;Load sample config</button>
+  <div style="font-size:11px;color:var(--t3);">Native Synology DSM Hyper Backup 4.x format supported</div>
+</div>
+
+<div id="dashboard-view">
+  <div class="stats-bar" id="stats-bar"></div>
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('tasks',this)">🗂 Tasks</div>
+    <div class="tab" onclick="switchTab('coverage',this)">🔄 Coverage</div>
+    <div class="tab" onclick="switchTab('directories',this)">📁 Directories</div>
+    <div class="tab" onclick="switchTab('suggestions',this)" id="tab-reco">💡 Recommendations</div>
+  </div>
+
+  <div class="tab-content active" id="tab-tasks">
+    <div class="tasks-grid" id="tasks-grid"></div>
+  </div>
+
+  <div class="tab-content" id="tab-coverage">
+    <section>
+      <div class="section-title">3-2-1 Backup Coverage Matrix</div>
+      <div class="info-note">ℹ️ &nbsp;Backup schedules (<code>sched_id</code>) and integrity check schedules (<code>incheck_sched_id</code>) are stored in the DSM task scheduler, not in this file. Only the schedule IDs are shown here.</div>
+      <div class="coverage-wrap">
+        <table class="cov-table" id="cov-table"></table>
+      </div>
+    </section>
+    <section>
+      <div class="section-title">Integrity Check Configuration</div>
+      <div class="info-note">ℹ️ &nbsp;<code>incheck_info.date</code> = when integrity checking was <strong>first enabled</strong>, not the last-run date. Actual run history and last-run time are only visible in DSM → Hyper Backup → select task → Backup Explorer.</div>
+      <div class="integrity-list" id="integrity-list"></div>
+    </section>
+  </div>
+
+  <div class="tab-content" id="tab-directories">
+    <section>
+      <div class="section-title">Source Directories</div>
+      <div class="dirs-grid" id="dirs-grid"></div>
+    </section>
+    <section id="apps-section">
+      <div class="section-title">Backed-up Applications</div>
+      <div id="apps-grid"></div>
+    </section>
+    <section id="exclude-section">
+      <div class="section-title">Exclusion Filters</div>
+      <div id="exclude-list-el"></div>
+    </section>
+  </div>
+
+  <div class="tab-content" id="tab-suggestions">
+    <div class="suggestions-list" id="suggestions-list"></div>
+  </div>
+</div>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════════════════ */
+const TASK_COLORS = ['#38bdf8','#34d399','#a78bfa','#fbbf24','#fb7185','#2dd4bf','#fb923c','#e879f9','#a3e635','#f43f5e'];
+
+const DIR_TYPES = {
+  home:   {label:'Home',  icon:'🏠',cls:'dt-home',  color:'#38bdf8'},
+  media:  {label:'Media', icon:'🎬',cls:'dt-media', color:'#a78bfa'},
+  vm:     {label:'VM',    icon:'💻',cls:'dt-vm',    color:'#fb7185'},
+  backup: {label:'Backup',icon:'📦',cls:'dt-backup',color:'#fbbf24'},
+  apps:   {label:'Apps',  icon:'⚙️', cls:'dt-apps',  color:'#2dd4bf'},
+  general:{label:'Data',  icon:'📁',cls:'dt-general',color:'#8ba3c5'},
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   SAMPLE CONFIG — real synobackup.conf format (Hyper Backup 4.x)
+   Mirrors actual structure: [global], [repo_N], [task_N] sections
+   Values may be: booleans, numbers, JSON arrays, quoted JSON strings
+═══════════════════════════════════════════════════════════════════ */
+const SAMPLE_CONF = `[global]
+repo_id_max=8
+task_id_max=8
+version="4.1.2-4045"
+[repo_1]
+name=""
+remote_share="usbshare2-2"
+remote_ssl_cert_fingerprint=""
+target_type="image"
+trans_type="image_local"
+[task_1]
+backup_apps=["HyperBackup","LogCenter","OAuthService","StorageAnalyzer"]
+backup_apps_config=null
+backup_data_type="data"
+backup_filter={"exclude_list":[],"whitelist":[]}
+backup_folders=["/homes","/u001"]
+backup_volumes=[]
+create_time=1668467618
+data_compress_type=1
+enable_data_encrypt=true
+enable_delete=true
+enable_notify=true
+enable_version_rotation=true
+incheck_info="{\\"data_enable\\":true,\\"date\\":\\"2023/11/20\\",\\"time_limit\\":30}\\n"
+incheck_sched_id=5
+name="Local Home Backup"
+repo_id=1
+rotate_action="[[86400,3600,1],[2419200,86400,1],[0,604800,1]]"
+rotate_condition="[1,256]"
+rotate_option="rotate_smart_recycle"
+sched_id=4
+support_cross_file_dedup=true
+target_dir="nas01_1.hbk"
+[repo_2]
+name=""
+remote_bucket="abc123bucket"
+remote_key="002a185a3ef39ad0000000001"
+remote_secret="wjcnlV9xu4OC78bOEV=="
+remote_url="s3.us-west-002.backblazeb2.com"
+signature_version="v4"
+target_type="cloud_image"
+trans_type="aws_s3"
+[task_2]
+backup_apps=["HyperBackup"]
+backup_apps_config=null
+backup_data_type="data"
+backup_filter={"exclude_list":[],"whitelist":[]}
+backup_folders=["/media/photos","/media/video","/media/music"]
+backup_volumes=[]
+create_time=1599600152
+data_compress_type=1
+enable_data_encrypt=true
+enable_delete=true
+enable_notify=true
+enable_version_rotation=true
+incheck_info="{\\"data_enable\\":true,\\"date\\":\\"2023/9/12\\",\\"time_limit\\":0}\\n"
+incheck_sched_id=6
+name="S3 Media Cloud"
+repo_id=2
+rotate_action="[[86400,3600,1],[2419200,86400,1],[0,604800,1]]"
+rotate_condition="[1,75]"
+rotate_option="rotate_smart_recycle"
+sched_id=7
+support_cross_file_dedup=true
+target_dir="nas01_2.hbk"
+trans_encrypt=true
+[repo_3]
+name=""
+remote_share="usbshare1-2"
+remote_ssl_cert_fingerprint=""
+target_type="image"
+trans_type="image_local"
+[task_3]
+backup_apps=[]
+backup_apps_config=null
+backup_data_type="data"
+backup_filter={"exclude_list":["/vmdatastore/.TemporaryItems/","/vmdatastore/images/"],"whitelist":[]}
+backup_folders=["/vmdatastore"]
+backup_volumes=[]
+create_time=1612515887
+data_compress_type=1
+enable_data_encrypt=true
+enable_delete=true
+enable_notify=true
+enable_version_rotation=true
+incheck_info="{\\"data_enable\\":false,\\"date\\":\\"2022/3/10\\",\\"time_limit\\":0}\\n"
+incheck_sched_id=8
+name="Local VM Datastore"
+repo_id=3
+rotate_action="[[86400,3600,1],[2419200,86400,1],[0,604800,1]]"
+rotate_condition="[1,10]"
+rotate_option="rotate_smart_recycle"
+sched_id=9
+support_cross_file_dedup=true
+target_dir="nas01_3.hbk"
+[repo_4]
+name=""
+remote_bucket="def456bucket"
+remote_key="002a185a3ef39ad0000000002"
+remote_secret="wjcnleKHJ6T1Uofwer=="
+remote_url="s3.us-west-002.backblazeb2.com"
+signature_version="v4"
+target_type="cloud_image"
+trans_type="aws_s3"
+[task_4]
+backup_apps=[]
+backup_apps_config=null
+backup_data_type="data"
+backup_filter={"exclude_list":["/backup/Network Trash Folder/"],"whitelist":[]}
+backup_folders=["/backup"]
+backup_volumes=[]
+create_time=1612515196
+data_compress_type=0
+enable_data_encrypt=false
+enable_delete=true
+enable_notify=false
+enable_version_rotation=true
+incheck_info="{\\"data_enable\\":false,\\"date\\":\\"2021/2/7\\",\\"time_limit\\":0}\\n"
+incheck_sched_id=10
+name="S3 Backup Archive"
+repo_id=4
+rotate_action="[[86400,3600,1],[2419200,86400,1],[0,604800,1]]"
+rotate_condition="[1,10]"
+rotate_option="rotate_smart_recycle"
+sched_id=11
+support_cross_file_dedup=true
+target_dir="nas01_4.hbk"
+trans_encrypt=false`;
+
+/* ═══════════════════════════════════════════════════════════════════
+   PARSER
+   synobackup.conf is INI-structured but values may be:
+     - bare booleans: true / false
+     - bare numbers:  1612515196
+     - unquoted JSON arrays/objects: ["HyperBackup"] / {"exclude_list":[]}
+     - quoted strings: "S3 Media 1"
+     - quoted JSON strings (inner escaped): "{\"data_enable\":true,...}\n"
+═══════════════════════════════════════════════════════════════════ */
+
+/** Parse a single raw value string into a JS value */
+function parseValue(raw) {
+  const s = raw.trim();
+  if (s === 'true')  return true;
+  if (s === 'false') return false;
+  if (s === 'null')  return null;
+
+  // Unquoted JSON array or object
+  if ((s.startsWith('[') && s.endsWith(']')) ||
+      (s.startsWith('{') && s.endsWith('}'))) {
+    try { return JSON.parse(s); } catch (_) { /* fall through */ }
+  }
+
+  // Outer-quoted string — use JSON.parse to handle \", \n, etc.
+  if (s.startsWith('"') && s.endsWith('"')) {
+    let inner;
+    try { inner = JSON.parse(s); } catch (_) { inner = s.slice(1, -1); }
+    if (typeof inner === 'string') {
+      const ti = inner.trim();
+      // Inner content may itself be JSON (e.g. incheck_info, rotate_action)
+      if ((ti.startsWith('[') && ti.endsWith(']')) ||
+          (ti.startsWith('{') && ti.endsWith('}'))) {
+        try { return JSON.parse(ti); } catch (_) { /* leave as string */ }
+      }
+      return inner;
+    }
+    return inner;
+  }
+
+  // Number
+  const n = Number(s);
+  if (s !== '' && !isNaN(n)) return n;
+  return s;
+}
+
+/** Parse full INI text into { sectionName: { key: parsedValue } } */
+function parseINI(text) {
+  const sections = {};
+  let cur = null;
+  for (const rawLine of text.split('\n')) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#') || line.startsWith(';')) continue;
+    const secM = line.match(/^\[(.+)\]$/);
+    if (secM) { cur = secM[1]; sections[cur] = {}; continue; }
+    if (!cur) continue;
+    const eq = line.indexOf('=');
+    if (eq <= 0) continue;
+    const key = line.slice(0, eq).trim();
+    const val = line.slice(eq + 1).trim();
+    sections[cur][key] = parseValue(val);
+  }
+  return sections;
+}
+
+/** Safely unwrap incheck_info field (may be object or stringified JSON) */
+function parseIncheckInfo(raw) {
+  const def = {data_enable: false, date: null, time_limit: 0};
+  if (!raw) return def;
+  if (typeof raw === 'object' && raw !== null) return {...def, ...raw};
+  if (typeof raw === 'string') {
+    try { return {...def, ...JSON.parse(raw.trim())}; } catch (_) {}
+  }
+  return def;
+}
+
+/** Convert parsed sections into normalized task array */
+function normalizeConfig(sections) {
+  const repos = {};
+  const rawTasks = [];
+  for (const [k, v] of Object.entries(sections)) {
+    if (k.startsWith('repo_')) repos[k] = v;
+    else if (k.startsWith('task_')) rawTasks.push([k, v]);
+  }
+
+  return rawTasks.map(([key, v]) => {
+    const repo = repos['repo_' + v.repo_id] || {};
+    const incheck = parseIncheckInfo(v.incheck_info);
+    const rotCond = Array.isArray(v.rotate_condition) ? v.rotate_condition : [1, 0];
+    const bfilter = (v.backup_filter && typeof v.backup_filter === 'object')
+      ? v.backup_filter : {exclude_list: [], whitelist: []};
+
+    const transType  = String(repo.trans_type  || v.trans_type  || '');
+    const targetType = String(repo.target_type || v.target_type || '');
+    const isCloud = transType === 'aws_s3' || targetType === 'cloud_image';
+    const isLocal = transType === 'image_local' || targetType === 'image';
+
+    return {
+      id: key,
+      name: typeof v.name === 'string' && v.name ? v.name : key,
+      repoId: v.repo_id,
+      srcFolders: Array.isArray(v.backup_folders) ? v.backup_folders : [],
+      srcApps:    Array.isArray(v.backup_apps)    ? v.backup_apps    : [],
+      excludeList: Array.isArray(bfilter.exclude_list) ? bfilter.exclude_list : [],
+      isCloud, isLocal, transType, targetType,
+      remoteUrl:    repo.remote_url    || '',
+      remoteBucket: repo.remote_bucket || '',
+      remoteShare:  repo.remote_share  || '',
+      targetDir: v.target_dir || '',
+      encrypted:      v.enable_data_encrypt === true,
+      transEncrypted: v.trans_encrypt        === true,
+      compressed:     v.data_compress_type   === 1,
+      notifyEnabled:  v.enable_notify        === true,
+      rotationEnabled:v.enable_version_rotation === true,
+      minVersions: rotCond[0] ?? 1,
+      maxVersions: rotCond[1] ?? 0,
+      rotationOption: v.rotate_option || '',
+      integrityEnabled:     incheck.data_enable === true,
+      integrityEnabledSince:incheck.date  || null,   // date integrity was first enabled, not last-run
+      integrityTimeLimit:   typeof incheck.time_limit === 'number' ? incheck.time_limit : 0,
+      schedId:       v.sched_id,
+      incheckSchedId:v.incheck_sched_id,
+      createTime: typeof v.create_time === 'number' ? v.create_time : null,
+      targetMaxSizeKB: typeof v.target_max_size_value === 'number' ? v.target_max_size_value : 0,
+      crossDedup: v.support_cross_file_dedup === true,
+    };
+  });
+}
+
+/** Top-level parser: auto-detects format, returns task array */
+function parseConfig(text) {
+  const t = text.trim();
+  if (t.startsWith('{') || t.startsWith('[')) {
+    try {
+      const obj = JSON.parse(t);
+      const arr = obj.tasks || (Array.isArray(obj) ? obj : null);
+      if (arr) return arr.map((x, i) => ({
+        id: `task_${i+1}`, name: x.name || x.task_name || `Task ${i+1}`,
+        repoId: i+1, srcFolders: Array.isArray(x.backup_folders) ? x.backup_folders : [],
+        srcApps: Array.isArray(x.backup_apps) ? x.backup_apps : [], excludeList: [],
+        isCloud: false, isLocal: true, transType: '', targetType: '',
+        remoteUrl:'',remoteBucket:'',remoteShare:'',targetDir:'',
+        encrypted: x.enable_data_encrypt ?? true, transEncrypted: false,
+        compressed: x.data_compress_type === 1, notifyEnabled: x.enable_notify ?? false,
+        rotationEnabled: true, minVersions: 1, maxVersions: 30,
+        integrityEnabled: false, integrityEnabledSince: null, integrityTimeLimit: 0,
+        schedId: null, incheckSchedId: null, createTime: x.create_time ?? null,
+        targetMaxSizeKB: 0, crossDedup: false,
+      }));
+    } catch (_) {}
+  }
+  const sections = parseINI(text);
+  return normalizeConfig(sections);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════════════ */
+function detectDirType(path) {
+  const p = path.toLowerCase();
+  if (/\/(homes?|users?|u\d+)/.test(p)) return 'home';
+  if (/\/(video|videos|music|photo|photos|media|movies|pictures|images|audio)/.test(p)) return 'media';
+  if (/\/(vmdatastore|virtualmachines?|vms?|vmware|virtualbox|qemu)/.test(p)) return 'vm';
+  if (/\/(backup|backups|archive|archives)/.test(p)) return 'backup';
+  return 'general';
+}
+
+/* ── Hierarchical path coverage helpers ─────────────────────────── */
+
+/** True if `child` equals `parent` or is a direct descendant */
+function isChildOf(child, parent) {
+  if (child === parent) return true;
+  const p = parent.endsWith('/') ? parent : parent + '/';
+  return child.startsWith(p);
+}
+
+/**
+ * True if `path` falls under any exclusion rule of `task`.
+ * Exclusion paths in synobackup.conf typically end with '/'.
+ */
+function isExcluded(path, task) {
+  return task.excludeList.some(ex => {
+    const clean = ex.endsWith('/') ? ex.slice(0, -1) : ex;
+    return isChildOf(path, clean);
+  });
+}
+
+/**
+ * True if `task` backs up `path`, respecting:
+ *  1. Direct listing: if `path` is explicitly in srcFolders it is always covered
+ *     (explicit entry overrides any exclusion rule — matches Hyper Backup behaviour).
+ *  2. Parent coverage: if a srcFolder is an ancestor of `path`, it is covered
+ *     unless `path` is matched by an exclusion rule.
+ */
+function taskCoversPath(path, task) {
+  // 1. Explicit direct entry → always covered
+  if (task.srcFolders.some(src => src === path)) return true;
+  // 2. Parent src + not excluded
+  for (const src of task.srcFolders) {
+    if (src !== path && isChildOf(path, src) && !isExcluded(path, task)) return true;
+  }
+  return false;
+}
+
+/**
+ * Given a sorted list of all paths, return the longest path in that list
+ * that is a proper ancestor of `path` (i.e. the nearest ancestor).
+ */
+function nearestAncestor(path, sortedPaths) {
+  return sortedPaths
+    .filter(p => p !== path && isChildOf(path, p))
+    .sort((a, b) => b.length - a.length)[0] || null;
+}
+
+/**
+ * Produce a deduplicated, hierarchically-aware coverage row list.
+ *
+ * Rules:
+ *  - Always show root paths (no ancestor in the path set).
+ *  - Show child paths ONLY when their cloud+local coverage set differs from
+ *    their nearest ancestor's coverage set.
+ *  - Consecutive siblings (same nearest ancestor, same coverage fingerprint)
+ *    are collapsed into a single "group" row with a count + path list.
+ */
+function buildCoverageRows(tasks) {
+  const allPaths = [...new Set(tasks.flatMap(t => t.srcFolders))].sort();
+
+  function getCov(path) {
+    const cloud = tasks.filter(t => t.isCloud && taskCoversPath(path, t));
+    const local = tasks.filter(t => t.isLocal && taskCoversPath(path, t));
+    return { cloud, local };
+  }
+
+  function covKey(cov) {
+    return cov.cloud.map(t => t.id).sort().join(',') + '|' + cov.local.map(t => t.id).sort().join(',');
+  }
+
+  // First pass: compute coverage for each path, decide whether to show
+  const candidates = [];
+  for (const path of allPaths) {
+    const anc = nearestAncestor(path, allPaths);
+    const cov = getCov(path);
+    const ck  = covKey(cov);
+    if (!anc) {
+      candidates.push({ path, cov, ck, anc, depth: 0 });
+    } else {
+      const ancCov = getCov(anc);
+      if (ck !== covKey(ancCov)) {
+        // Coverage changed relative to nearest ancestor → show this path
+        candidates.push({ path, cov, ck, anc, depth: 1 });
+      }
+      // else: same coverage as parent → suppressed (correctly collapsed)
+    }
+  }
+
+  // Second pass: collapse consecutive siblings with identical coverage into group rows
+  const rows = [];
+  for (const c of candidates) {
+    const prev = rows[rows.length - 1];
+    if (
+      prev &&
+      prev.anc === c.anc &&
+      prev.ck === c.ck &&
+      prev.depth === c.depth &&
+      prev.depth > 0   // only group children, not roots
+    ) {
+      prev.paths.push(c.path);
+    } else {
+      rows.push({ ...c, paths: [c.path] });
+    }
+  }
+
+  return rows;
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  return new Date(ts * 1000).toLocaleDateString('en-US', {year:'numeric',month:'short',day:'numeric'});
+}
+
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  // Format: "2020/9/12" or "2022/11/20"
+  const parts = dateStr.split('/').map(Number);
+  if (parts.length < 3) return null;
+  const then = new Date(parts[0], parts[1] - 1, parts[2]);
+  return Math.floor((Date.now() - then) / 86400000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HIERARCHICAL COVERAGE ENGINE
+   Handles: ancestor coverage, exclusions, re-inclusion via
+   more-specific sources (e.g. /media excluded /media/video but
+   re-includes /media/video/car as an explicit srcFolder)
+═══════════════════════════════════════════════════════════════════ */
+
+/** Reuse the correct engine from buildCoverageRows / taskCoversPath above */
+
+/* ═══════════════════════════════════════════════════════════════════
+   SUGGESTIONS ENGINE
+═══════════════════════════════════════════════════════════════════ */
+function generateSuggestions(tasks) {
+  const sugs = [];
+  const add = (sev, icon, title, detail, names=[]) =>
+    sugs.push({severity:sev, icon, title, detail, names});
+
+  // Use buildCoverageRows for accurate hierarchical path analysis
+  const covRows = buildCoverageRows(tasks);
+  // Root rows only (depth=0) for high-level 3-2-1 analysis
+  const rootRows = covRows.filter(r => r.depth === 0);
+  const allCovRows = covRows; // all rows for gap analysis
+
+  // Paths with NO cloud coverage (any coverage row, depth 0 or 1)
+  const noCloud = allCovRows.filter(r => r.cov.cloud.length === 0);
+  if (noCloud.length) {
+    const pathLabels = noCloud.map(r => r.paths.length===1 ? r.paths[0] : `${r.paths[0]}… (+${r.paths.length-1})`);
+    add('high','☁️','No cloud/off-site backup for some paths',
+      `These paths only have local backups. A fire, flood, or NAS failure would cause total data loss. Add S3 cloud tasks covering: ${pathLabels.join(', ')}.`,
+      pathLabels);
+  }
+
+  // Paths with no local coverage
+  const noLocal = rootRows.filter(r => r.cov.local.length === 0);
+  if (noLocal.length) {
+    add('medium','🔌','No local backup for some paths',
+      `These paths only have off-site (cloud) backups. Recovery from cloud is slow. Add a local USB task for fast restores: ${noLocal.flatMap(r=>r.paths).join(', ')}.`,
+      noLocal.flatMap(r=>r.paths));
+  }
+
+  // Full 3-2-1 good for all root paths
+  const allRoot321 = rootRows.every(r => r.cov.cloud.length>0 && r.cov.local.length>0);
+  if (allRoot321 && rootRows.length > 0 && noCloud.length === 0) {
+    add('good','✅','Core directories satisfy 3-2-1 rule',
+      `All root-level source directories have both cloud and local coverage.`);
+  }
+
+  // VM without integrity check
+  const vmNoInteg = tasks.filter(t =>
+    t.srcFolders.some(f => detectDirType(f) === 'vm') && !t.integrityEnabled
+  );
+  if (vmNoInteg.length)
+    add('high','🚨','VM backups missing integrity checks',
+      'VM disk images are especially vulnerable to silent corruption — a single bad block can make an entire VM unbootable. Enable integrity checking (data_enable=true in incheck_info) for all VM tasks.',
+      vmNoInteg.map(t=>t.name));
+
+  // VM with dangerously low version count
+  const vmLowVer = tasks.filter(t =>
+    t.srcFolders.some(f => detectDirType(f) === 'vm') && t.maxVersions > 0 && t.maxVersions < 14
+  );
+  if (vmLowVer.length)
+    add('high','💾','Critical: Too few VM backup versions',
+      'These VM tasks keep fewer than 14 versions. Corruption can persist for days before detection. Increase rotate_condition max to at least 14–30.',
+      vmLowVer.map(t=>`${t.name} (${t.maxVersions} versions)`));
+
+  // Other tasks without integrity check
+  const noInteg = tasks.filter(t => !t.integrityEnabled && !vmNoInteg.includes(t));
+  if (noInteg.length)
+    add('medium','🔍','Integrity checks not enabled',
+      'Without integrity verification, backup corruption can silently go undetected. Enable data_enable=true in incheck_info for these tasks.',
+      noInteg.map(t=>t.name));
+
+  // Stale integrity check suggestion removed:
+  // incheck_info.date = when integrity was first ENABLED, not last-run date.
+  // Actual schedule is stored in DSM task scheduler via incheck_sched_id, not in this file.
+
+  // No data encryption
+  const noEnc = tasks.filter(t => !t.encrypted);
+  if (noEnc.length)
+    add('high','🔓','Data encryption disabled',
+      'Unencrypted backups expose all data if media is lost or stolen. Enable enable_data_encrypt=true — especially critical for cloud (S3) destinations.',
+      noEnc.map(t=>t.name));
+
+  // Cloud without transport encryption
+  const cloudNoTrans = tasks.filter(t => t.isCloud && t.encrypted && !t.transEncrypted);
+  if (cloudNoTrans.length)
+    add('medium','🔒','Cloud tasks missing transport encryption',
+      'Data is encrypted at rest, but trans_encrypt=false means unencrypted transfer to S3. Enable transit encryption to protect data over the network.',
+      cloudNoTrans.map(t=>t.name));
+
+  // No notifications
+  const noNotify = tasks.filter(t => !t.notifyEnabled);
+  if (noNotify.length)
+    add('low','🔔','Failure notifications disabled',
+      'Silent backup failures leave you unaware until a restore is needed. Enable enable_notify=true and configure DSM email/push notifications.',
+      noNotify.map(t=>t.name));
+
+  // Backing up /backup dir
+  const metaBackup = tasks.filter(t => t.srcFolders.some(f => detectDirType(f) === 'backup'));
+  if (metaBackup.length)
+    add('low','📦','Backing up a /backup directory',
+      'These tasks include a /backup path as a source. Confirm this is intentional — if this is the destination of another local backup task, backing it up again is typically redundant.',
+      metaBackup.map(t=>t.name));
+
+  // No compression (not media)
+  const noComp = tasks.filter(t =>
+    !t.compressed && !t.srcFolders.some(f => detectDirType(f)==='media')
+  );
+  if (noComp.length)
+    add('low','🗜️','Compression disabled for non-media tasks',
+      'Setting data_compress_type=1 for home, VM, and data tasks typically reduces backup size by 30–60% with minimal CPU overhead on modern NAS hardware.',
+      noComp.map(t=>t.name));
+
+  // Good: all cloud encrypted
+  const cloudTasks = tasks.filter(t => t.isCloud);
+  if (cloudTasks.length && cloudTasks.every(t => t.encrypted && t.transEncrypted))
+    add('good','☁️','All cloud backups fully encrypted',
+      'Every S3 task has both data encryption and transport encryption enabled. Data is protected at rest and in transit.');
+
+  // Good: cross-file dedup
+  if (tasks.length && tasks.every(t => t.crossDedup))
+    add('good','♻️','Cross-file deduplication active everywhere',
+      'All tasks have support_cross_file_dedup=true, significantly reducing backup storage when files are shared across directories.');
+
+  const order = {high:0,medium:1,low:2,good:3};
+  sugs.sort((a,b) => order[a.severity]-order[b.severity]);
+  return sugs;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════════════ */
+function renderStats(tasks) {
+  const allSrc = [...new Set(tasks.flatMap(t=>t.srcFolders))];
+  const cloudCount = tasks.filter(t=>t.isCloud).length;
+  const localCount = tasks.filter(t=>t.isLocal).length;
+  const encCount   = tasks.filter(t=>t.encrypted).length;
+  const warns = generateSuggestions(tasks).filter(s=>s.severity!=='good').length;
+
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Backup Tasks</div>
+      <div class="stat-value">${tasks.length}</div>
+      <div class="stat-meta">${cloudCount} cloud · ${localCount} local</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Source Dirs</div>
+      <div class="stat-value">${allSrc.length}</div>
+      <div class="stat-meta">${[...new Set(allSrc.map(detectDirType))].join(', ')}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Encrypted</div>
+      <div class="stat-value" style="color:${encCount===tasks.length?'var(--green)':'var(--rose)'}">${encCount}/${tasks.length}</div>
+      <div class="stat-meta">${encCount===tasks.length?'All tasks':'Some unencrypted'}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Max Versions</div>
+      <div class="stat-value">${Math.max(0,...tasks.map(t=>t.maxVersions||0))}</div>
+      <div class="stat-meta">highest retention</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Recommendations</div>
+      <div class="stat-value" style="color:${warns>0?'var(--amber)':'var(--green)'}">${warns}</div>
+      <div class="stat-meta">${warns===0?'Nothing to address':'items to review'}</div>
+    </div>`;
+}
+
+function renderTaskCards(tasks) {
+  document.getElementById('tasks-grid').innerHTML = tasks.map((t,i) => {
+    const col = TASK_COLORS[i % TASK_COLORS.length];
+    const dtClass = t.isCloud ? 'dst-s3' : (t.isLocal ? 'dst-local' : '');
+    const dtLabel = t.isCloud ? '☁ S3 Cloud' : (t.isLocal ? '🔌 Local USB' : t.transType || 'Unknown');
+
+    const showFolders = t.srcFolders.slice(0, 5);
+    const moreFolders = t.srcFolders.length - showFolders.length;
+    const folderRows = showFolders.map(f => {
+      const type = detectDirType(f);
+      const dt2 = DIR_TYPES[type];
+      return `<div class="folder-row">
+        <span class="folder-dot" style="background:${dt2.color}"></span>
+        <span class="folder-path">${f}</span>
+        <span class="folder-type">${dt2.label}</span>
+      </div>`;
+    }).join('');
+
+    const appSection = t.srcApps.length
+      ? `<div class="task-apps"><div class="folders-label">apps</div><div class="apps-row">${t.srcApps.map(a=>`<span class="app-chip">${a}</span>`).join('')}</div></div>` : '';
+
+    const flags = [
+      t.encrypted ? `<span class="flag flag-good">🔒 Encrypted</span>` : `<span class="flag flag-bad">🔓 No encryption</span>`,
+      t.isCloud ? (t.transEncrypted ? `<span class="flag flag-good">🛡 Transit enc</span>` : `<span class="flag flag-warn">⚠ No transit enc</span>`) : '',
+      t.compressed ? `<span class="flag flag-good">🗜 Compressed</span>` : `<span class="flag flag-info">📄 No compress</span>`,
+      t.notifyEnabled ? `<span class="flag flag-good">🔔 Notify</span>` : `<span class="flag flag-warn">🔕 No notify</span>`,
+      t.crossDedup ? `<span class="flag flag-info">♻ Dedup</span>` : '',
+    ].filter(Boolean).join('');
+
+    const intStat = t.integrityEnabled
+      ? `<span class="tbi-value good">✓ since ${t.integrityEnabledSince || '—'}</span>`
+      : `<span class="tbi-value warn">⚠ Disabled</span>`;
+    const verClass = t.maxVersions > 0 && t.maxVersions < 14 ? 'bad' : (t.maxVersions >= 30 ? 'good' : '');
+    const dst = t.isCloud
+      ? `${t.remoteBucket ? t.remoteBucket+'@' : ''}${t.remoteUrl || 'S3'}`
+      : (t.remoteShare || t.targetDir || '—');
+
+    return `<div class="task-card">
+      <div class="task-card-top" style="background:${col}"></div>
+      <div class="task-header">
+        <div class="task-name">${t.name}</div>
+        <span class="dst-badge ${dtClass}">${dtLabel}</span>
+      </div>
+      ${t.srcFolders.length ? `<div class="task-folders"><div class="folders-label">source folders</div>${folderRows}${moreFolders>0?`<div class="more-folders">+${moreFolders} more…</div>`:''}</div>` : ''}
+      ${appSection}
+      <div class="task-flags">${flags}</div>
+      <div class="task-bottom">
+        <div class="task-bottom-item">
+          <div class="tbi-label">max versions</div>
+          <div class="tbi-value ${verClass}">${t.maxVersions || '?'}</div>
+        </div>
+        <div class="task-bottom-item">
+          <div class="tbi-label">integrity check</div>
+          ${intStat}
+        </div>
+        <div class="task-bottom-item">
+          <div class="tbi-label">created</div>
+          <div class="tbi-value">${fmtDate(t.createTime)}</div>
+        </div>
+        <div class="task-bottom-item">
+          <div class="tbi-label">destination</div>
+          <div class="tbi-value" style="font-family:'JetBrains Mono',monospace;font-size:10px;word-break:break-all;">${dst}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">No tasks found</div>';
+}
+
+function renderCoverage(tasks) {
+  const rows = buildCoverageRows(tasks);
+
+  // Apps-only tasks as separate rows
+  const appsRows = tasks
+    .filter(t => t.srcFolders.length === 0 && t.srcApps.length > 0)
+    .map(t => ({
+      paths: ['(apps: ' + t.srcApps.slice(0,3).join(', ') + (t.srcApps.length>3?` +${t.srcApps.length-3}`:'') + ')'],
+      cov: { cloud: t.isCloud?[t]:[], local: t.isLocal?[t]:[] },
+      depth: 0, anc: null, isApps: true,
+    }));
+
+  function cellHtml(tArr) {
+    if (!tArr.length) return `<span class="cov-check cov-no">—</span>`;
+    return `<span class="cov-check cov-yes">✓</span>` +
+      tArr.map(t=>`<span class="task-name-badge">${t.name}</span>`).join('');
+  }
+
+  const thead = `<thead><tr>
+    <th class="cov-th">Source Path</th>
+    <th class="cov-th" style="width:80px;">Type</th>
+    <th class="cov-th center">☁ S3 Cloud</th>
+    <th class="cov-th center">🔌 Local USB</th>
+    <th class="cov-th center" style="width:56px;">3-2-1</th>
+  </tr></thead>`;
+
+  const allRows = [...rows, ...appsRows];
+
+  const tbody = '<tbody>' + allRows.map(r => {
+    const has321 = r.cov.cloud.length > 0 && r.cov.local.length > 0;
+    const repPath = r.paths[0];
+    const type  = r.isApps ? 'apps' : detectDirType(repPath);
+    const dt2   = DIR_TYPES[type] || DIR_TYPES.general;
+    const isGap = !has321;
+    const rowStyle = isGap && r.depth === 0
+      ? 'background:rgba(251,191,36,.05);'
+      : (r.depth > 0 ? 'background:rgba(0,0,0,.04);' : '');
+
+    let pathCell;
+    if (r.paths.length > 1) {
+      // Grouped siblings: show common prefix + count
+      const prefix = longestCommonPathPrefix(r.paths);
+      const suffixes = r.paths.map(p => p.slice(prefix.length) || p);
+      pathCell = `
+        <div style="display:flex;align-items:baseline;gap:8px;${r.depth?'padding-left:18px':''}">
+          ${r.depth ? '<span class="cov-child-arrow">↳</span>' : `<span style="font-size:14px;line-height:1;">${dt2.icon}</span>`}
+          <span class="cov-dir-path">${prefix}<span style="color:var(--t1);font-weight:600;">*</span></span>
+          <span class="cov-group-count">${r.paths.length} paths</span>
+        </div>
+        <div class="cov-path-detail">${suffixes.map(s=>`<span class="cov-path-chip">${s}</span>`).join('')}</div>`;
+    } else {
+      pathCell = `
+        <div style="display:flex;align-items:center;gap:8px;${r.depth?'padding-left:18px':''}">
+          ${r.depth ? '<span class="cov-child-arrow">↳</span>' : `<span style="font-size:14px;line-height:1;">${dt2.icon}</span>`}
+          <span class="cov-dir-path">${repPath}</span>
+          ${r.anc ? `<span class="cov-via">via parent</span>` : ''}
+        </div>`;
+    }
+
+    return `<tr style="${rowStyle}">
+      <td class="cov-td">${pathCell}</td>
+      <td class="cov-td"><span class="dir-type-badge ${dt2.cls}">${dt2.label}</span></td>
+      <td class="cov-td">${cellHtml(r.cov.cloud)}</td>
+      <td class="cov-td">${cellHtml(r.cov.local)}</td>
+      <td class="cov-td center" style="font-size:17px;" title="${has321?'3-2-1 satisfied':'Missing cloud or local copy'}">${has321?'✅':'⚠️'}</td>
+    </tr>`;
+  }).join('') + '</tbody>';
+
+  document.getElementById('cov-table').innerHTML = thead + tbody;
+}
+
+/** Longest common path prefix ending at a '/' boundary */
+function longestCommonPathPrefix(paths) {
+  if (paths.length <= 1) return paths[0] || '';
+  const parts = paths[0].split('/');
+  let common = '';
+  for (let d = 1; d <= parts.length; d++) {
+    const prefix = parts.slice(0, d).join('/') + '/';
+    if (paths.every(p => p.startsWith(prefix))) common = prefix;
+    else break;
+  }
+  return common;
+}
+
+function renderIntegrity(tasks) {
+  // incheck_info.date = when integrity check was FIRST ENABLED (not last-run date)
+  // incheck_sched_id  = reference to DSM task scheduler entry (schedule not in this file)
+  // Actual last-run time is only visible inside DSM Hyper Backup UI.
+  document.getElementById('integrity-list').innerHTML = tasks.map((t, i) => {
+    const col = TASK_COLORS[i % TASK_COLORS.length];
+
+    const schedBadge = t.incheckSchedId
+      ? `<span style="font-size:9px;font-family:'JetBrains Mono',monospace;background:var(--bg1);border:1px solid var(--border);color:var(--t3);padding:2px 7px;border-radius:100px;">sched_id ${t.incheckSchedId}</span>`
+      : `<span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--t3);">no schedule</span>`;
+
+    const enabledPill = t.integrityEnabled
+      ? `<span style="font-size:10px;font-family:'JetBrains Mono',monospace;background:var(--greenD);color:var(--green);border:1px solid var(--green);padding:2px 8px;border-radius:100px;">ENABLED</span>`
+      : `<span style="font-size:10px;font-family:'JetBrains Mono',monospace;background:var(--roseD);color:var(--rose);border:1px solid var(--rose);padding:2px 8px;border-radius:100px;">DISABLED</span>`;
+
+    const since = t.integrityEnabledSince
+      ? `<span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;">since ${t.integrityEnabledSince}</span>`
+      : '';
+
+    const timeLimit = t.integrityEnabled && t.integrityTimeLimit > 0
+      ? `<span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">max ${t.integrityTimeLimit} min</span>`
+      : (t.integrityEnabled ? `<span style="font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;">no time limit</span>` : '');
+
+    return `<div class="integ-row">
+      <div class="integ-dot" style="background:${t.integrityEnabled ? col : 'var(--t3)'}"></div>
+      <div class="integ-name">${t.name}</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;">
+        ${enabledPill}
+        ${since}
+        ${timeLimit}
+      </div>
+      <div style="flex-shrink:0;">${schedBadge}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderDirectories(tasks) {
+  // Source dirs
+  const dirMap = new Map();
+  for (const t of tasks)
+    for (const f of t.srcFolders) {
+      if (!dirMap.has(f)) dirMap.set(f, []);
+      dirMap.get(f).push(t.name);
+    }
+
+  document.getElementById('dirs-grid').innerHTML = [...dirMap.entries()].map(([path, names]) => {
+    const type = detectDirType(path);
+    const dt2 = DIR_TYPES[type];
+    return `<div class="dir-card">
+      <div class="dir-icon-box" style="background:${dt2.color}18;border:1px solid ${dt2.color}30;">${dt2.icon}</div>
+      <div class="dir-info">
+        <div class="dir-path">${path}</div>
+        <div class="dir-used-by">${names.join(' · ')}</div>
+      </div>
+      <span class="dir-type-badge ${dt2.cls}">${dt2.label}</span>
+    </div>`;
+  }).join('') || '<div class="empty">No source directories configured</div>';
+
+  // Apps
+  const appMap = new Map();
+  for (const t of tasks)
+    for (const a of t.srcApps) {
+      if (!appMap.has(a)) appMap.set(a,[]);
+      appMap.get(a).push(t.name);
+    }
+
+  if (appMap.size) {
+    document.getElementById('apps-grid').innerHTML =
+      `<div style="display:flex;flex-wrap:wrap;gap:8px;">` +
+      [...appMap.entries()].map(([app, names]) =>
+        `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:15px;">⚙️</span>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--t1);">${app}</div>
+            <div style="font-size:10px;color:var(--t3);">${names.join(', ')}</div>
+          </div>
+        </div>`
+      ).join('') + `</div>`;
+    document.getElementById('apps-section').style.display = '';
+  } else {
+    document.getElementById('apps-section').style.display = 'none';
+  }
+
+  // Exclusions
+  const excludes = [];
+  for (const t of tasks)
+    for (const ex of t.excludeList) excludes.push({path:ex,task:t.name});
+
+  if (excludes.length) {
+    document.getElementById('exclude-list-el').innerHTML =
+      `<div style="display:flex;flex-direction:column;gap:5px;">` +
+      excludes.map(e =>
+        `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:10px;">
+          <span style="color:var(--rose);font-size:12px;">✕</span>
+          <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t2);flex:1;">${e.path}</span>
+          <span style="font-size:10px;color:var(--t3);">${e.task}</span>
+        </div>`
+      ).join('') + `</div>`;
+    document.getElementById('exclude-section').style.display = '';
+  } else {
+    document.getElementById('exclude-section').style.display = 'none';
+  }
+}
+
+function renderSuggestions(tasks) {
+  const sugs = generateSuggestions(tasks);
+  const warns = sugs.filter(s=>s.severity!=='good').length;
+  document.getElementById('tab-reco').textContent =
+    warns > 0 ? `💡 Recommendations (${warns})` : '💡 Recommendations';
+
+  document.getElementById('suggestions-list').innerHTML = sugs.map(s => {
+    const tags = s.names.map(n=>`<span class="sug-tag">${n}</span>`).join('');
+    return `<div class="suggestion sug-${s.severity}">
+      <div class="sug-icon">${s.icon}</div>
+      <div class="sug-body">
+        <div class="sug-title">${s.title}<span class="sev-pill pill-${s.severity}">${s.severity.toUpperCase()}</span></div>
+        <div class="sug-detail">${s.detail}</div>
+        ${tags?`<div class="sug-tasks">${tags}</div>`:''}
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">No recommendations — configuration looks great!</div>';
+}
+
+function renderAll(tasks, filename) {
+  if (!tasks.length) { alert('No backup tasks found in this file.\n\nThis app expects a Synology Hyper Backup synobackup.conf with [repo_N] and [task_N] sections.'); return; }
+  renderStats(tasks);
+  renderTaskCards(tasks);
+  renderCoverage(tasks);
+  renderIntegrity(tasks);
+  renderDirectories(tasks);
+  renderSuggestions(tasks);
+  document.getElementById('upload-view').style.display = 'none';
+  document.getElementById('dashboard-view').style.display = 'block';
+  document.getElementById('file-badge').textContent = filename || 'config loaded';
+  document.getElementById('file-badge').style.display = 'block';
+  document.getElementById('btn-reset').style.display = 'flex';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EVENT HANDLERS
+═══════════════════════════════════════════════════════════════════ */
+function handleFileSelect(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try { renderAll(parseConfig(ev.target.result), file.name); }
+    catch(err) { alert('Parse error: '+err.message); }
+  };
+  reader.readAsText(file);
+}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function handleDragLeave() { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault(); document.getElementById('drop-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { try { renderAll(parseConfig(ev.target.result), file.name); } catch(err) { alert('Parse error: '+err.message); } };
+  reader.readAsText(file);
+}
+function loadSample() { renderAll(parseConfig(SAMPLE_CONF), 'sample_synobackup.conf'); }
+function resetApp() {
+  document.getElementById('upload-view').style.display = 'flex';
+  document.getElementById('dashboard-view').style.display = 'none';
+  document.getElementById('file-badge').style.display = 'none';
+  document.getElementById('btn-reset').style.display = 'none';
+  document.getElementById('file-input').value = '';
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('.tab-content').forEach((c,i) => c.classList.toggle('active', i===0));
+}
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  ({tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions'}[name] || 'tab-tasks');
+  document.getElementById({tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions'}[name]).classList.add('active');
+}
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('btn-theme').textContent = next==='dark'?'🌙':'☀️';
+  localStorage.setItem('synoanalyzer-theme', next);
+}
+(function(){
+  const saved = localStorage.getItem('synoanalyzer-theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('btn-theme').textContent = saved==='dark'?'🌙':'☀️';
+  }
+})();
+</script>
+</body>
+</html>
