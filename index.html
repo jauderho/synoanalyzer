@@ -182,6 +182,42 @@ section{margin-bottom:32px;}
 .pill-low{background:var(--skyD);color:var(--sky);}
 .pill-good{background:var(--greenD);color:var(--green);}
 
+/* ── Overview tab ─────────────────────────────────────────────── */
+.ov-hero{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px 24px;display:flex;gap:30px;align-items:center;flex-wrap:wrap;}
+.gauge-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.gauge{position:relative;width:140px;height:140px;}
+.gauge svg{transform:rotate(-90deg);}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.gauge-score{font-size:38px;font-weight:700;color:var(--t1);line-height:1;}
+.gauge-of{font-size:12px;color:var(--t3);margin-top:2px;}
+.gauge-label{font-size:14px;font-weight:600;}
+.breakdown{flex:1;min-width:260px;display:flex;flex-direction:column;gap:11px;}
+.bd-row{display:grid;grid-template-columns:140px 1fr 44px;align-items:center;gap:12px;}
+.bd-label{font-size:13px;color:var(--t2);}
+.bd-track{height:7px;background:var(--bg1);border-radius:4px;overflow:hidden;}
+.bd-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+.bd-pct{font-size:13px;color:var(--t2);text-align:right;font-variant-numeric:tabular-nums;}
+
+.ov-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:13px;}
+.ov-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;}
+.ov-card-head{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--t1);}
+.ov-card-head .ico{font-size:16px;}
+.ov-big{font-size:30px;font-weight:700;line-height:1;}
+.ov-big small{font-size:16px;font-weight:600;color:var(--t3);}
+.ov-sub{font-size:13px;color:var(--t2);line-height:1.5;}
+.ov-rule{display:flex;gap:6px;flex-wrap:wrap;}
+.ov-rule span{font-size:11px;color:var(--t3);background:var(--bg1);border:1px solid var(--border);padding:2px 9px;border-radius:100px;}
+.ov-names{display:flex;flex-wrap:wrap;gap:5px;}
+.ov-name{font-size:11px;font-family:'JetBrains Mono',monospace;background:var(--bg1);border:1px solid var(--border);color:var(--t2);padding:2px 8px;border-radius:100px;}
+.ov-name.bad{color:var(--rose);border-color:var(--rose);background:var(--roseD);}
+
+.dest-list{display:flex;flex-direction:column;gap:8px;}
+.dest-row{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.dest-badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;white-space:nowrap;flex-shrink:0;}
+.dest-path{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--t2);flex:1;min-width:120px;word-break:break-all;}
+.dest-tasks{display:flex;gap:5px;flex-wrap:wrap;}
+.spof-note{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.5;color:var(--amber);background:var(--amberD);border:1px solid var(--amber);border-radius:10px;padding:10px 14px;margin-top:4px;}
+
 #dashboard-view{display:none;}
 .empty{text-align:center;padding:40px;color:var(--t3);font-size:13px;}
 ::-webkit-scrollbar{width:6px;height:6px;}
@@ -235,7 +271,7 @@ section{margin-bottom:32px;}
 <div id="dashboard-view">
   <div class="stats-bar" id="stats-bar"></div>
   <div class="tab-bar">
-    <div class="tab active" onclick="switchTab('overview',this)">📊 Overview</div>
+    <div class="tab active" onclick="switchTab('overview',this)">🧭 Overview</div>
     <div class="tab" onclick="switchTab('tasks',this)">🗂 Tasks</div>
     <div class="tab" onclick="switchTab('coverage',this)">🔄 Coverage</div>
     <div class="tab" onclick="switchTab('directories',this)">📁 Directories</div>
@@ -866,6 +902,155 @@ function generateSuggestions(tasks) {
 /* ═══════════════════════════════════════════════════════════════════
    RENDER
 ═══════════════════════════════════════════════════════════════════ */
+
+/** Weighted 0–100 backup health score + per-component breakdown */
+function computeHealthScore(tasks) {
+  const n = tasks.length || 1;
+  const rootRows = buildCoverageRows(tasks).filter(r => r.depth === 0);
+  const rootN = rootRows.length || 1;
+
+  const cov321 = rootRows.filter(r => r.cov.cloud.length > 0 && r.cov.local.length > 0).length / rootN;
+  const enc     = tasks.filter(t => t.encrypted).length / n;
+  const integ   = tasks.filter(t => t.integrityEnabled).length / n;
+  const retention = tasks.filter(t => {
+    const isVm = t.srcFolders.some(f => detectDirType(f) === 'vm');
+    return t.maxVersions >= (isVm ? 14 : 7);
+  }).length / n;
+  const notify  = tasks.filter(t => t.notifyEnabled).length / n;
+
+  const components = [
+    {label:'3-2-1 coverage',   frac:cov321,    weight:30},
+    {label:'Data encryption',  frac:enc,       weight:25},
+    {label:'Integrity checks', frac:integ,     weight:20},
+    {label:'Version retention',frac:retention, weight:15},
+    {label:'Failure alerts',   frac:notify,    weight:10},
+  ];
+  const score = Math.round(components.reduce((s,c) => s + c.frac * c.weight, 0));
+  return {score, components};
+}
+
+/** Map a 0–100 score to {label, cssVar} */
+function scoreGrade(score) {
+  if (score >= 85) return {label:'Excellent', col:'var(--green)'};
+  if (score >= 70) return {label:'Good',      col:'var(--green)'};
+  if (score >= 50) return {label:'Fair',      col:'var(--amber)'};
+  return {label:'At risk', col:'var(--rose)'};
+}
+
+function renderOverview(tasks) {
+  /* ── 1. Health score gauge + breakdown ── */
+  const {score, components} = computeHealthScore(tasks);
+  const grade = scoreGrade(score);
+  const R = 52, C = 2 * Math.PI * R;
+  const offset = C * (1 - score / 100);
+
+  document.getElementById('ov-hero').innerHTML = `
+    <div class="gauge-wrap">
+      <div class="gauge">
+        <svg width="140" height="140" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--bg1)" stroke-width="12"/>
+          <circle cx="60" cy="60" r="${R}" fill="none" stroke="${grade.col}" stroke-width="12"
+            stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/>
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-score">${score}</div>
+          <div class="gauge-of">out of 100</div>
+        </div>
+      </div>
+      <div class="gauge-label" style="color:${grade.col};">${grade.label}</div>
+    </div>
+    <div class="breakdown">
+      ${components.map(c => {
+        const pct = Math.round(c.frac * 100);
+        const col = c.frac >= .8 ? 'var(--green)' : c.frac >= .5 ? 'var(--amber)' : 'var(--rose)';
+        return `<div class="bd-row">
+          <span class="bd-label">${c.label}</span>
+          <div class="bd-track"><div class="bd-fill" style="width:${pct}%;background:${col};"></div></div>
+          <span class="bd-pct">${pct}%</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  /* ── 2-4. Coverage & risk cards ── */
+  const allDirs = [...new Set(tasks.flatMap(t => t.srcFolders))];
+  const cloudTasks = tasks.filter(t => t.isCloud);
+  const exposed = allDirs.filter(d => !cloudTasks.some(t => taskCoversPath(d, t)));
+  const exposedPct = allDirs.length ? Math.round(exposed.length / allDirs.length * 100) : 0;
+
+  const rootRows = buildCoverageRows(tasks).filter(r => r.depth === 0);
+  const ok321 = rootRows.filter(r => r.cov.cloud.length > 0 && r.cov.local.length > 0).length;
+
+  const encAtRest = tasks.filter(t => t.encrypted).length;
+  const unencNames = tasks.filter(t => !t.encrypted).map(t => t.name);
+  const transitOk = cloudTasks.filter(t => t.transEncrypted).length;
+  const noTransitNames = cloudTasks.filter(t => !t.transEncrypted).map(t => t.name);
+
+  const blastCol = exposed.length === 0 ? 'var(--green)' : exposedPct >= 50 ? 'var(--rose)' : 'var(--amber)';
+  const c321Col  = ok321 === rootRows.length ? 'var(--green)' : 'var(--amber)';
+
+  document.getElementById('ov-cards').innerHTML = `
+    <div class="ov-card">
+      <div class="ov-card-head"><span class="ico">🎯</span>3-2-1 Rule</div>
+      <div class="ov-big" style="color:${c321Col};">${ok321}<small> / ${rootRows.length} dirs</small></div>
+      <div class="ov-sub">Root source directories with both an off-site and a local copy.</div>
+      <div class="ov-rule"><span>3 copies</span><span>2 media</span><span>1 off-site</span></div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-card-head"><span class="ico">💥</span>Blast Radius</div>
+      <div class="ov-big" style="color:${blastCol};">${exposed.length}<small> / ${allDirs.length} dirs</small></div>
+      <div class="ov-sub">${exposed.length === 0
+        ? 'Every source directory has an off-site copy — a NAS loss would not orphan any data.'
+        : `Local-only (${exposedPct}%). If the NAS is lost, stolen, or destroyed, these have no off-site copy:`}</div>
+      ${exposed.length ? `<div class="ov-names">${exposed.map(d => `<span class="ov-name bad">${d}</span>`).join('')}</div>` : ''}
+    </div>
+    <div class="ov-card">
+      <div class="ov-card-head"><span class="ico">🔐</span>Encryption Posture</div>
+      <div class="ov-sub" style="font-size:14px;color:var(--t1);font-weight:600;">
+        At rest: <span style="color:${encAtRest===tasks.length?'var(--green)':'var(--rose)'};">${encAtRest}/${tasks.length}</span>
+        &nbsp;·&nbsp;
+        In transit: <span style="color:${cloudTasks.length&&transitOk===cloudTasks.length?'var(--green)':'var(--amber)'};">${transitOk}/${cloudTasks.length} cloud</span>
+      </div>
+      ${unencNames.length ? `<div class="ov-sub">Unencrypted at rest:</div><div class="ov-names">${unencNames.map(n=>`<span class="ov-name bad">${n}</span>`).join('')}</div>` : ''}
+      ${noTransitNames.length ? `<div class="ov-sub">Cloud without transit encryption:</div><div class="ov-names">${noTransitNames.map(n=>`<span class="ov-name">${n}</span>`).join('')}</div>` : ''}
+      ${!unencNames.length && !noTransitNames.length ? `<div class="ov-sub">All backups are encrypted at rest and in transit.</div>` : ''}
+    </div>`;
+
+  /* ── 5. Storage destinations + single-point-of-failure detection ── */
+  const dests = new Map();   // key → {type, label, tasks[]}
+  for (const t of tasks) {
+    const isCloud = t.isCloud;
+    const key = isCloud
+      ? `cloud:${t.remoteBucket || ''}@${t.remoteUrl || 'S3'}`
+      : `local:${t.remoteShare || t.targetDir || '—'}`;
+    if (!dests.has(key)) dests.set(key, {
+      isCloud,
+      label: isCloud ? `${t.remoteBucket ? t.remoteBucket + '@' : ''}${t.remoteUrl || 'S3'}` : (t.remoteShare || t.targetDir || '—'),
+      tasks: [],
+    });
+    dests.get(key).tasks.push(t.name);
+  }
+
+  const localTasks = tasks.filter(t => t.isLocal);
+  const localVols = [...new Set(localTasks.map(t => t.remoteShare).filter(Boolean))];
+  const cloudProviders = [...new Set(cloudTasks.map(t => t.remoteUrl).filter(Boolean))];
+
+  const notes = [];
+  if (localTasks.length > 1 && localVols.length === 1)
+    notes.push(`All ${localTasks.length} local backups live on a single volume (<code>${localVols[0]}</code>) — one disk failure loses every local copy.`);
+  if (cloudTasks.length > 1 && cloudProviders.length === 1)
+    notes.push(`All ${cloudTasks.length} cloud backups use a single provider (<code>${cloudProviders[0]}</code>) — a provider outage or account lock affects all off-site copies.`);
+
+  const rows = [...dests.values()].map(d => `
+    <div class="dest-row">
+      <span class="dest-badge ${d.isCloud ? 'dst-s3' : 'dst-local'}" style="border:1px solid ${d.isCloud?'var(--orange)':'var(--teal)'};color:${d.isCloud?'var(--orange)':'var(--teal)'};background:${d.isCloud?'var(--orangeD)':'var(--tealD)'};">${d.isCloud ? '☁ S3 Cloud' : '🔌 Local USB'}</span>
+      <span class="dest-path">${d.label}</span>
+      <span class="dest-tasks">${d.tasks.map(n => `<span class="ov-name">${n}</span>`).join('')}</span>
+    </div>`).join('');
+
+  document.getElementById('ov-dest').innerHTML =
+    rows + notes.map(n => `<div class="spof-note">⚠️<span>${n}</span></div>`).join('');
+}
+
 function renderStats(tasks) {
   const allSrc = [...new Set(tasks.flatMap(t=>t.srcFolders))];
   const cloudCount = tasks.filter(t=>t.isCloud).length;
@@ -1179,6 +1364,7 @@ function renderSuggestions(tasks) {
 function renderAll(tasks, filename) {
   if (!tasks.length) { alert('No backup tasks found in this file.\n\nThis app expects a Synology Hyper Backup synobackup.conf with [repo_N] and [task_N] sections.'); return; }
   renderStats(tasks);
+  renderOverview(tasks);
   renderTaskCards(tasks);
   renderCoverage(tasks);
   renderIntegrity(tasks);
@@ -1226,8 +1412,8 @@ function switchTab(name, el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
-  ({tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions'}[name] || 'tab-tasks');
-  document.getElementById({tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions'}[name]).classList.add('active');
+  ({overview:'tab-overview',tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions'}[name] || 'tab-tasks');
+  document.getElementById({overview:'tab-overview',tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions'}[name]).classList.add('active');
 }
 function toggleTheme() {
   const next = document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
