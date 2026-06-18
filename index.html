@@ -37,6 +37,7 @@
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;transition:background .3s,color .3s;font-size:15px;line-height:1.5;}
 
 header{position:sticky;top:0;z-index:100;background:var(--bg1);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(8px);}
+.header-left{display:flex;align-items:center;gap:14px;}
 .logo{display:flex;align-items:center;gap:10px;}
 .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--sky),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;box-shadow:0 0 16px rgba(56,189,248,.3);}
 .logo-text{font-size:16px;font-weight:600;color:var(--t1);}
@@ -134,8 +135,8 @@ section{margin-bottom:32px;}
 .cov-path-detail{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;padding-left:22px;}
 .cov-path-chip{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t2);background:var(--bg1);border:1px solid var(--border);padding:1px 7px;border-radius:4px;}
 
-.info-note{font-size:12px;color:var(--t2);line-height:1.5;background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:9px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-.info-note code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t3);}
+.info-note{font-size:12px;color:var(--t2);line-height:1.6;background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:9px 14px;margin-bottom:14px;}
+.info-note code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t3);background:var(--bg2);border:1px solid var(--borderL);padding:1px 5px;border-radius:4px;}
 
 .integrity-list{display:flex;flex-direction:column;gap:7px;}
 .integ-row{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;}
@@ -216,7 +217,47 @@ section{margin-bottom:32px;}
 .dest-badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;white-space:nowrap;flex-shrink:0;}
 .dest-path{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--t2);flex:1;min-width:120px;word-break:break-all;}
 .dest-tasks{display:flex;gap:5px;flex-wrap:wrap;}
-.spof-note{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.5;color:var(--amber);background:var(--amberD);border:1px solid var(--amber);border-radius:10px;padding:10px 14px;margin-top:4px;}
+/* retention timeline */
+.ret-list{display:flex;flex-direction:column;gap:9px;}
+.ret-row{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:grid;grid-template-columns:170px 1fr auto;align-items:center;gap:14px;}
+.ret-name{font-size:13px;font-weight:500;color:var(--t1);display:flex;align-items:center;gap:8px;min-width:0;}
+.ret-name .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.ret-name .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ret-track{height:8px;background:var(--bg1);border-radius:4px;overflow:hidden;}
+.ret-fill{height:100%;border-radius:4px;}
+.ret-end{display:flex;align-items:center;gap:10px;justify-content:flex-end;}
+.ret-meta{font-size:12px;color:var(--t2);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.ret-flag{font-size:11px;color:var(--rose);background:var(--roseD);border:1px solid var(--rose);padding:2px 8px;border-radius:100px;white-space:nowrap;}
+
+/* shared button */
+.btn{font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;padding:9px 16px;border-radius:9px;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--t2);transition:all .2s;display:inline-flex;align-items:center;gap:7px;}
+.btn:hover{border-color:var(--sky);color:var(--sky);background:var(--skyD);}
+.btn-primary{background:var(--skyD);border-color:var(--sky);color:var(--sky);}
+.btn-danger:hover{border-color:var(--rose);color:var(--rose);background:var(--roseD);}
+
+/* drift tab */
+.drift-empty{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:34px 30px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.drift-empty .big-ico{font-size:38px;}
+.drift-empty h3{font-size:16px;font-weight:600;color:var(--t1);}
+.drift-empty p{font-size:13px;color:var(--t2);line-height:1.6;max-width:480px;}
+.drift-empty code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t3);}
+.drift-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+.drift-baseline-info{font-size:12px;color:var(--t3);margin-right:auto;}
+.drift-baseline-info strong{color:var(--t2);}
+.drift-summary{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.drift-score{font-size:14px;color:var(--t2);}
+.drift-score b{font-size:20px;color:var(--t1);font-weight:700;vertical-align:middle;}
+.drift-group{margin-bottom:18px;}
+.drift-task{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;}
+.drift-task.added{border-left-color:var(--green);}
+.drift-task.removed{border-left-color:var(--rose);}
+.drift-task.modified{border-left-color:var(--amber);}
+.drift-task-name{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.drift-change{font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace;padding:2px 0;line-height:1.6;word-break:break-word;}
+.drift-change .k{color:var(--t3);}
+.drift-change .old{color:var(--rose);}
+.drift-change .new{color:var(--green);}
+.drift-change .arrow{color:var(--t3);margin:0 6px;}
 
 #dashboard-view{display:none;}
 .empty{text-align:center;padding:40px;color:var(--t3);font-size:13px;}
@@ -226,26 +267,52 @@ section{margin-bottom:32px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--t3);}
 @media(max-width:900px){.stats-bar{grid-template-columns:repeat(3,1fr);}main{padding:20px 16px;}header{padding:0 16px;}}
 @media(max-width:600px){.stats-bar{grid-template-columns:repeat(2,1fr);}}
+
+/* ── Print / PDF report ── (later source order + matching specificity overrides the active theme) */
+@media print{
+  [data-theme="dark"],[data-theme="light"]{
+    --bg:#fff;--bg1:#eef2fa;--bg2:#fff;--bg3:#f7f9ff;--border:#c3d0e6;--borderL:#dae2f1;
+    --t1:#0b1730;--t2:#3d566f;--t3:#5a6f88;
+    --sky:#0369a1;--skyD:#eaf4fb;--green:#047857;--greenD:#e8f6f0;--amber:#b45309;--amberD:#fbf1e3;
+    --rose:#be123c;--roseD:#fbe9ee;--purple:#6d28d9;--purpleD:#f0ebfb;--teal:#0f766e;--tealD:#e6f4f2;--orange:#c2410c;--orangeD:#fbeee4;
+  }
+  body{background:#fff !important;font-size:12px;}
+  header{position:static;border-bottom:1px solid var(--border);}
+  .btn-icon,.tab-bar,.drift-actions,.divider-or,.btn{display:none !important;}
+  #upload-view{display:none !important;}
+  #tab-drift{display:none !important;}
+  .tab-content{display:block !important;}
+  .ov-cards,.tasks-grid,.dirs-grid{display:block;}
+  .task-card,.ov-card{margin-bottom:8px;}
+  section,.task-card,.ov-card,.suggestion,.integ-row,.dir-card,.dest-row,.ret-row,.drift-task,.ov-hero{break-inside:avoid;}
+  .task-card:hover,.suggestion:hover,.dir-card:hover{transform:none;}
+  a[href]{text-decoration:none;color:inherit;}
+}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-icon">S</div>
-    <div>
-      <div class="logo-text">SynoAnalyzer</div>
-      <div class="logo-sub">Hyper Backup config visualizer</div>
+  <div class="header-left">
+    <div class="logo">
+      <div class="logo-icon">S</div>
+      <div>
+        <div class="logo-text">SynoAnalyzer</div>
+        <div class="logo-sub">Hyper Backup config visualizer</div>
+      </div>
     </div>
+    <a href="https://github.com/jauderho/synoanalyzer" target="_blank" rel="noopener noreferrer" class="btn-icon" title="View on GitHub" style="text-decoration:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+    </a>
   </div>
   <div class="header-right">
     <span class="file-badge" id="file-badge"></span>
     <div class="btn-icon btn-reset" id="btn-reset" title="Load new file" onclick="resetApp()">
       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
     </div>
-    <a href="https://github.com/jauderho/synoanalyzer" target="_blank" rel="noopener noreferrer" class="btn-icon" title="View on GitHub" style="text-decoration:none;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
-    </a>
+    <div class="btn-icon btn-export" id="btn-export" title="Print / Save as PDF report" onclick="printReport()" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    </div>
     <div class="btn-icon" id="btn-theme" title="Toggle theme" onclick="toggleTheme()">🌙</div>
   </div>
 </header>
@@ -276,6 +343,7 @@ section{margin-bottom:32px;}
     <div class="tab" onclick="switchTab('coverage',this)">🔄 Coverage</div>
     <div class="tab" onclick="switchTab('directories',this)">📁 Directories</div>
     <div class="tab" onclick="switchTab('suggestions',this)" id="tab-reco">💡 Recommendations</div>
+    <div class="tab" onclick="switchTab('drift',this)">🔀 Drift</div>
   </div>
 
   <div class="tab-content active" id="tab-overview">
@@ -286,6 +354,10 @@ section{margin-bottom:32px;}
     <section>
       <div class="section-title">Coverage &amp; Risk</div>
       <div class="ov-cards" id="ov-cards"></div>
+    </section>
+    <section>
+      <div class="section-title">Version Retention</div>
+      <div class="ret-list" id="ov-retention"></div>
     </section>
     <section>
       <div class="section-title">Storage Destinations</div>
@@ -330,6 +402,14 @@ section{margin-bottom:32px;}
   <div class="tab-content" id="tab-suggestions">
     <div class="suggestions-list" id="suggestions-list"></div>
   </div>
+
+  <div class="tab-content" id="tab-drift">
+    <section>
+      <div class="section-title">Configuration Drift</div>
+      <div class="info-note">ℹ️ &nbsp;Save the current config as a baseline, then re-open SynoAnalyzer with a newer <code>synobackup.conf</code> to see exactly what changed. The baseline is stored only in this browser's local storage — nothing is uploaded.</div>
+      <div id="drift-body"></div>
+    </section>
+  </div>
 </div>
 </main>
 
@@ -347,6 +427,11 @@ const DIR_TYPES = {
   apps:   {label:'Apps',  icon:'⚙️', cls:'dt-apps',  color:'#2dd4bf'},
   general:{label:'Data',  icon:'📁',cls:'dt-general',color:'#8ba3c5'},
 };
+
+/* Current loaded config (for the Drift tab) + localStorage baseline key */
+let CURRENT_TASKS = [];
+let CURRENT_FILE  = '';
+const BASELINE_KEY = 'synoanalyzer-baseline';
 
 /* ═══════════════════════════════════════════════════════════════════
    SAMPLE CONFIG — real synobackup.conf format (Hyper Backup 4.x)
@@ -418,7 +503,7 @@ rotate_option="rotate_smart_recycle"
 sched_id=7
 support_cross_file_dedup=true
 target_dir="nas01_2.hbk"
-trans_encrypt=true
+trans_encrypt=false
 [repo_3]
 name=""
 remote_share="usbshare1-2"
@@ -480,7 +565,40 @@ rotate_option="rotate_smart_recycle"
 sched_id=11
 support_cross_file_dedup=true
 target_dir="nas01_4.hbk"
-trans_encrypt=false`;
+trans_encrypt=false
+[repo_5]
+name=""
+remote_bucket="ghi789bucket"
+remote_key="002a185a3ef39ad0000000003"
+remote_secret="wjcnlXyZ12abQR8shT=="
+remote_url="s3.us-west-002.backblazeb2.com"
+signature_version="v4"
+target_type="cloud_image"
+trans_type="aws_s3"
+[task_5]
+backup_apps=[]
+backup_apps_config=null
+backup_data_type="data"
+backup_filter={"exclude_list":[],"whitelist":[]}
+backup_folders=["/homes"]
+backup_volumes=[]
+create_time=1700161200
+data_compress_type=1
+enable_data_encrypt=true
+enable_delete=true
+enable_notify=true
+enable_version_rotation=true
+incheck_info="{\\"data_enable\\":true,\\"date\\":\\"2023/11/20\\",\\"time_limit\\":30}\\n"
+incheck_sched_id=12
+name="S3 Home Offsite"
+repo_id=5
+rotate_action="[[86400,3600,1],[2419200,86400,1],[0,604800,1]]"
+rotate_condition="[1,30]"
+rotate_option="rotate_smart_recycle"
+sched_id=13
+support_cross_file_dedup=true
+target_dir="nas01_5.hbk"
+trans_encrypt=true`;
 
 /* ═══════════════════════════════════════════════════════════════════
    PARSER
@@ -894,6 +1012,30 @@ function generateSuggestions(tasks) {
     add('good','♻️','Cross-file deduplication active everywhere',
       'All tasks have support_cross_file_dedup=true, significantly reducing backup storage when files are shared across directories.');
 
+  // Single point of failure: all local copies on one volume
+  const localTasks = tasks.filter(t => t.isLocal);
+  const localVols  = [...new Set(localTasks.map(t => t.remoteShare).filter(Boolean))];
+  if (localTasks.length > 1 && localVols.length === 1)
+    add('medium','🗄️','All local backups on a single volume',
+      `Every local backup writes to ${localVols[0]}. A single disk or volume failure would destroy all on-site copies at once — spread local tasks across separate volumes.`,
+      [localVols[0]]);
+
+  // Single point of failure: all cloud copies with one provider
+  const cloudProviders = [...new Set(cloudTasks.map(t => t.remoteUrl).filter(Boolean))];
+  if (cloudTasks.length > 1 && cloudProviders.length === 1)
+    add('medium','☁️','All cloud backups use a single provider',
+      `Every off-site copy goes to ${cloudProviders[0]}. A provider outage, billing lapse, or account lock would affect all cloud backups simultaneously — consider a second provider for critical data.`,
+      [cloudProviders[0]]);
+
+  // Config age / staleness
+  const ctimes = tasks.map(t => t.createTime).filter(Boolean);
+  if (ctimes.length) {
+    const oldest = Math.min(...ctimes);
+    if ((Date.now()/1000 - oldest) / 31557600 >= 3)
+      add('low','⏳','Some backup tasks may be stale',
+        `The oldest task was configured ${fmtAge(oldest)} (${fmtDate(oldest)}). Configs older than ~3 years may predate current backup best practices — review encryption, retention, and integrity settings against current recommendations.`);
+  }
+
   const order = {high:0,medium:1,low:2,good:3};
   sugs.sort((a,b) => order[a.severity]-order[b.severity]);
   return sugs;
@@ -1015,7 +1157,7 @@ function renderOverview(tasks) {
       ${!unencNames.length && !noTransitNames.length ? `<div class="ov-sub">All backups are encrypted at rest and in transit.</div>` : ''}
     </div>`;
 
-  /* ── 5. Storage destinations + single-point-of-failure detection ── */
+  /* ── 5. Storage destinations (SPOF detection lives in Recommendations) ── */
   const dests = new Map();   // key → {type, label, tasks[]}
   for (const t of tasks) {
     const isCloud = t.isCloud;
@@ -1030,25 +1172,40 @@ function renderOverview(tasks) {
     dests.get(key).tasks.push(t.name);
   }
 
-  const localTasks = tasks.filter(t => t.isLocal);
-  const localVols = [...new Set(localTasks.map(t => t.remoteShare).filter(Boolean))];
-  const cloudProviders = [...new Set(cloudTasks.map(t => t.remoteUrl).filter(Boolean))];
-
-  const notes = [];
-  if (localTasks.length > 1 && localVols.length === 1)
-    notes.push(`All ${localTasks.length} local backups live on a single volume (<code>${localVols[0]}</code>) — one disk failure loses every local copy.`);
-  if (cloudTasks.length > 1 && cloudProviders.length === 1)
-    notes.push(`All ${cloudTasks.length} cloud backups use a single provider (<code>${cloudProviders[0]}</code>) — a provider outage or account lock affects all off-site copies.`);
-
-  const rows = [...dests.values()].map(d => `
+  document.getElementById('ov-dest').innerHTML = [...dests.values()].map(d => `
     <div class="dest-row">
       <span class="dest-badge ${d.isCloud ? 'dst-s3' : 'dst-local'}" style="border:1px solid ${d.isCloud?'var(--orange)':'var(--teal)'};color:${d.isCloud?'var(--orange)':'var(--teal)'};background:${d.isCloud?'var(--orangeD)':'var(--tealD)'};">${d.isCloud ? '☁ S3 Cloud' : '🔌 Local USB'}</span>
       <span class="dest-path">${d.label}</span>
       <span class="dest-tasks">${d.tasks.map(n => `<span class="ov-name">${n}</span>`).join('')}</span>
     </div>`).join('');
 
-  document.getElementById('ov-dest').innerHTML =
-    rows + notes.map(n => `<div class="spof-note">⚠️<span>${n}</span></div>`).join('');
+  /* ── 6. Version retention timeline ── */
+  const maxVer = Math.max(1, ...tasks.map(t => t.maxVersions || 0));
+  document.getElementById('ov-retention').innerHTML = tasks.map((t, i) => {
+    const col   = TASK_COLORS[i % TASK_COLORS.length];
+    const isVm  = t.srcFolders.some(f => detectDirType(f) === 'vm');
+    const lowVm = isVm && t.maxVersions > 0 && t.maxVersions < 14;
+    const pct   = Math.round((t.maxVersions || 0) / maxVer * 100);
+    const barCol = lowVm ? 'var(--rose)' : (t.maxVersions >= 30 ? 'var(--green)' : col);
+    return `<div class="ret-row">
+      <div class="ret-name"><span class="dot" style="background:${col}"></span><span class="nm">${t.name}</span></div>
+      <div class="ret-track"><div class="ret-fill" style="width:${Math.max(pct,3)}%;background:${barCol};"></div></div>
+      <div class="ret-end">
+        ${lowVm ? `<span class="ret-flag">⚠ VM &lt; 14</span>` : ''}
+        <span class="ret-meta">${t.minVersions}–${t.maxVersions || '?'} versions</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/** Human-friendly relative age from a unix-seconds timestamp */
+function fmtAge(ts) {
+  const days = Math.floor((Date.now()/1000 - ts) / 86400);
+  if (days < 1)  return 'today';
+  if (days < 60) return days + ' days ago';
+  const months = Math.floor(days / 30);
+  if (months < 24) return months + ' months ago';
+  return (days / 365.25).toFixed(1) + ' years ago';
 }
 
 function renderStats(tasks) {
@@ -1361,8 +1518,120 @@ function renderSuggestions(tasks) {
   }).join('') || '<div class="empty">No recommendations — configuration looks great!</div>';
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIG DRIFT — compare current config against a saved baseline
+   Baseline lives in localStorage only; clearable via the Drift tab.
+═══════════════════════════════════════════════════════════════════ */
+const DRIFT_FIELDS = [
+  {k:'isCloud',         label:'Cloud destination', fmt:v => v ? 'yes' : 'no'},
+  {k:'encrypted',       label:'Data encryption',   fmt:v => v ? 'on' : 'off'},
+  {k:'transEncrypted',  label:'Transit encryption',fmt:v => v ? 'on' : 'off'},
+  {k:'compressed',      label:'Compression',       fmt:v => v ? 'on' : 'off'},
+  {k:'notifyEnabled',   label:'Notifications',     fmt:v => v ? 'on' : 'off'},
+  {k:'integrityEnabled',label:'Integrity check',   fmt:v => v ? 'on' : 'off'},
+  {k:'minVersions',     label:'Min versions',      fmt:v => v},
+  {k:'maxVersions',     label:'Max versions',      fmt:v => v},
+  {k:'destination',     label:'Destination',       fmt:v => v},
+];
+
+/** Compact, JSON-serialisable snapshot of the config for diffing/storage */
+function snapshot(tasks, filename) {
+  return {
+    savedAt: Date.now(),
+    filename: filename || 'config',
+    score: computeHealthScore(tasks).score,
+    tasks: tasks.map(t => ({
+      name: t.name, isCloud: t.isCloud,
+      encrypted: t.encrypted, transEncrypted: t.transEncrypted,
+      compressed: t.compressed, notifyEnabled: t.notifyEnabled,
+      integrityEnabled: t.integrityEnabled,
+      minVersions: t.minVersions, maxVersions: t.maxVersions,
+      srcFolders: t.srcFolders.slice(),
+      destination: t.isCloud
+        ? `${t.remoteBucket ? t.remoteBucket + '@' : ''}${t.remoteUrl || 'S3'}`
+        : (t.remoteShare || t.targetDir || '—'),
+    })),
+  };
+}
+
+function getBaseline() {
+  try { return JSON.parse(localStorage.getItem(BASELINE_KEY)); } catch (_) { return null; }
+}
+function saveBaseline() {
+  if (!CURRENT_TASKS.length) return;
+  localStorage.setItem(BASELINE_KEY, JSON.stringify(snapshot(CURRENT_TASKS, CURRENT_FILE)));
+  renderDrift();
+}
+function clearBaseline() {
+  if (!confirm('Clear the saved baseline? This removes the stored snapshot from this browser.')) return;
+  localStorage.removeItem(BASELINE_KEY);
+  renderDrift();
+}
+
+function renderDrift() {
+  const el = document.getElementById('drift-body');
+  const base = getBaseline();
+
+  if (!base) {
+    el.innerHTML = `<div class="drift-empty">
+      <div class="big-ico">🔀</div>
+      <h3>No baseline saved yet</h3>
+      <p>Save the current configuration as a baseline. Later, open SynoAnalyzer with an updated <code>synobackup.conf</code> and this tab will show exactly what changed — added or removed tasks, encryption and retention toggles, and your overall health-score delta.</p>
+      <button class="btn btn-primary" onclick="saveBaseline()">📌 Save current config as baseline</button>
+    </div>`;
+    return;
+  }
+
+  const cur = snapshot(CURRENT_TASKS, CURRENT_FILE);
+  const baseMap = new Map(base.tasks.map(t => [t.name, t]));
+  const curMap  = new Map(cur.tasks.map(t => [t.name, t]));
+  const added   = cur.tasks.filter(t => !baseMap.has(t.name));
+  const removed = base.tasks.filter(t => !curMap.has(t.name));
+
+  const modified = [];
+  for (const ct of cur.tasks) {
+    const bt = baseMap.get(ct.name);
+    if (!bt) continue;
+    const changes = [];
+    for (const f of DRIFT_FIELDS)
+      if (ct[f.k] !== bt[f.k]) changes.push({label:f.label, old:f.fmt(bt[f.k]), new:f.fmt(ct[f.k])});
+    const addF = ct.srcFolders.filter(p => !bt.srcFolders.includes(p));
+    const remF = (bt.srcFolders || []).filter(p => !ct.srcFolders.includes(p));
+    if (addF.length) changes.push({label:'Folders added',   plain:addF.join(', '), cls:'new'});
+    if (remF.length) changes.push({label:'Folders removed', plain:remF.join(', '), cls:'old'});
+    if (changes.length) modified.push({name:ct.name, changes});
+  }
+
+  const delta = cur.score - base.score;
+  const dCol  = delta > 0 ? 'var(--green)' : delta < 0 ? 'var(--rose)' : 'var(--t2)';
+  const dTxt  = delta > 0 ? `+${delta}` : `${delta}`;
+  const noChange = !added.length && !removed.length && !modified.length;
+
+  const changeRow = c => c.plain
+    ? `<div class="drift-change"><span class="k">${c.label}:</span> <span class="${c.cls}">${c.plain}</span></div>`
+    : `<div class="drift-change"><span class="k">${c.label}:</span> <span class="old">${c.old}</span><span class="arrow">→</span><span class="new">${c.new}</span></div>`;
+
+  el.innerHTML = `
+    <div class="drift-actions">
+      <span class="drift-baseline-info">Baseline: <strong>${base.filename}</strong> · saved ${new Date(base.savedAt).toLocaleString()}</span>
+      <button class="btn" onclick="saveBaseline()">📌 Update baseline to current</button>
+      <button class="btn btn-danger" onclick="clearBaseline()">🗑 Clear baseline</button>
+    </div>
+    <div class="drift-summary">
+      <div class="drift-score">Health score: <b>${base.score}</b> <span style="color:var(--t3)">→</span> <b style="color:${dCol}">${cur.score}</b> <span style="color:${dCol};font-weight:600;">(${dTxt})</span></div>
+      <div class="drift-score">Tasks: <b>${base.tasks.length}</b> <span style="color:var(--t3)">→</span> <b>${cur.tasks.length}</b></div>
+    </div>
+    ${noChange ? `<div class="empty">No drift — the current config matches the saved baseline.</div>` : ''}
+    ${added.length ? `<div class="drift-group"><div class="section-title">Added tasks (${added.length})</div>${added.map(t => `<div class="drift-task added"><div class="drift-task-name">➕ ${t.name}</div><div class="drift-change">${t.isCloud ? 'Cloud' : 'Local'} · ${t.maxVersions} versions · encryption ${t.encrypted ? 'on' : 'off'}</div></div>`).join('')}</div>` : ''}
+    ${removed.length ? `<div class="drift-group"><div class="section-title">Removed tasks (${removed.length})</div>${removed.map(t => `<div class="drift-task removed"><div class="drift-task-name">➖ ${t.name}</div></div>`).join('')}</div>` : ''}
+    ${modified.length ? `<div class="drift-group"><div class="section-title">Modified tasks (${modified.length})</div>${modified.map(t => `<div class="drift-task modified"><div class="drift-task-name">✏️ ${t.name}</div>${t.changes.map(changeRow).join('')}</div>`).join('')}</div>` : ''}
+  `;
+}
+
 function renderAll(tasks, filename) {
   if (!tasks.length) { alert('No backup tasks found in this file.\n\nThis app expects a Synology Hyper Backup synobackup.conf with [repo_N] and [task_N] sections.'); return; }
+  CURRENT_TASKS = tasks;
+  CURRENT_FILE  = filename || 'config';
   renderStats(tasks);
   renderOverview(tasks);
   renderTaskCards(tasks);
@@ -1370,11 +1639,13 @@ function renderAll(tasks, filename) {
   renderIntegrity(tasks);
   renderDirectories(tasks);
   renderSuggestions(tasks);
+  renderDrift();
   document.getElementById('upload-view').style.display = 'none';
   document.getElementById('dashboard-view').style.display = 'block';
   document.getElementById('file-badge').textContent = filename || 'config loaded';
   document.getElementById('file-badge').style.display = 'block';
   document.getElementById('btn-reset').style.display = 'flex';
+  document.getElementById('btn-export').style.display = 'flex';
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1404,6 +1675,7 @@ function resetApp() {
   document.getElementById('dashboard-view').style.display = 'none';
   document.getElementById('file-badge').style.display = 'none';
   document.getElementById('btn-reset').style.display = 'none';
+  document.getElementById('btn-export').style.display = 'none';
   document.getElementById('file-input').value = '';
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
   document.querySelectorAll('.tab-content').forEach((c,i) => c.classList.toggle('active', i===0));
@@ -1412,8 +1684,16 @@ function switchTab(name, el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
-  ({overview:'tab-overview',tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions'}[name] || 'tab-tasks');
-  document.getElementById({overview:'tab-overview',tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions'}[name]).classList.add('active');
+  ({overview:'tab-overview',tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions',drift:'tab-drift'}[name] || 'tab-tasks');
+  document.getElementById({overview:'tab-overview',tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions',drift:'tab-drift'}[name]).classList.add('active');
+}
+/** Print / Save-as-PDF with a proper document title (used for the PDF filename & header) */
+function printReport() {
+  const prev = document.title;
+  document.title = 'SynoAnalyzer Report';
+  const restore = () => { document.title = prev; window.removeEventListener('afterprint', restore); };
+  window.addEventListener('afterprint', restore);
+  window.print();
 }
 function toggleTheme() {
   const next = document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
