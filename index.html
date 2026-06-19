@@ -65,6 +65,19 @@ input[type=file]{display:none;}
 .divider-or span{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
 .btn-sample{background:var(--bg2);border:1px solid var(--border);color:var(--t2);font-size:13px;font-weight:500;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:8px;}
 .btn-sample:hover{border-color:var(--sky);color:var(--sky);background:var(--skyD);}
+.sample-row{display:flex;align-items:center;gap:10px;}
+.help-i{width:22px;height:22px;border-radius:50%;border:1px solid var(--t3);color:var(--t3);font-size:13px;font-weight:700;font-style:italic;font-family:'JetBrains Mono',monospace;display:inline-flex;align-items:center;justify-content:center;cursor:help;transition:all .2s;flex-shrink:0;user-select:none;}
+.help-i:hover{border-color:var(--sky);color:var(--sky);background:var(--skyD);}
+
+.help-popover{position:fixed;z-index:200;display:none;pointer-events:none;width:380px;max-width:calc(100vw - 24px);background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:0 16px 48px rgba(0,0,0,.35);}
+.help-popover.pinned{pointer-events:auto;}
+.help-popover h4{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.help-popover .hp-sub{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:10px;}
+.help-popover .hp-item{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.help-popover .hp-when{font-size:12px;font-weight:600;color:var(--t1);}
+.help-popover code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--sky);background:var(--bg1);border:1px solid var(--border);padding:2px 7px;border-radius:5px;word-break:break-all;display:inline-block;line-height:1.5;}
+.help-popover .hp-or{font-size:11px;color:var(--t3);margin:1px 0;}
+.help-popover .hp-foot{font-size:11px;color:var(--t3);line-height:1.5;border-top:1px solid var(--borderL);padding-top:10px;margin-top:4px;}
 
 .stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px;}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:5px;}
@@ -323,7 +336,9 @@ section{margin-bottom:32px;}
        onclick="document.getElementById('file-input').click()"
        ondragover="handleDragOver(event)"
        ondragleave="handleDragLeave(event)"
-       ondrop="handleDrop(event)">
+       ondrop="handleDrop(event)"
+       onmouseenter="showHelp(this)"
+       onmouseleave="scheduleHideHelp()">
     <div class="upload-icon">📂</div>
     <div class="upload-title">Upload synobackup.conf</div>
     <div class="upload-sub">Drop your Synology Hyper Backup config file here,<br>or click to browse</div>
@@ -331,7 +346,12 @@ section{margin-bottom:32px;}
   </div>
   <input type="file" id="file-input" accept=".conf,.json,.txt,text/*" onchange="handleFileSelect(event)">
   <div class="divider-or" style="max-width:560px;"><span>or</span></div>
-  <button class="btn-sample" onclick="loadSample()">✨ &nbsp;Load sample config</button>
+  <div class="sample-row">
+    <button class="btn-sample" onclick="loadSample()">✨ &nbsp;Load sample config</button>
+    <span class="help-i" title="Where to find synobackup.conf"
+          onmouseenter="showHelp(this)" onmouseleave="scheduleHideHelp()"
+          onclick="toggleHelpPin(event,this)">i</span>
+  </div>
   <div style="font-size:12px;color:var(--t2);">Native Synology DSM Hyper Backup 4.x format supported</div>
 </div>
 
@@ -412,6 +432,22 @@ section{margin-bottom:32px;}
   </div>
 </div>
 </main>
+
+<div class="help-popover" id="help-popover">
+  <h4>📥 Where to find <code>synobackup.conf</code></h4>
+  <div class="hp-sub">The file location depends on your Synology DSM version:</div>
+  <div class="hp-item">
+    <span class="hp-when">DSM 7 / newer</span>
+    <code>/var/packages/HyperBackup/etc/synobackup.conf</code>
+  </div>
+  <div class="hp-item">
+    <span class="hp-when">Older DSM</span>
+    <code>/usr/syno/etc/synobackup.conf</code>
+    <span class="hp-or">— or —</span>
+    <code>/usr/syno/etc/packages/HyperBackup/synobackup.conf</code>
+  </div>
+  <div class="hp-foot">Copy it off the NAS via SSH or File Station, then drop it here. All parsing happens in your browser — nothing is uploaded.</div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════════
@@ -1687,6 +1723,48 @@ function switchTab(name, el) {
   ({overview:'tab-overview',tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions',drift:'tab-drift'}[name] || 'tab-tasks');
   document.getElementById({overview:'tab-overview',tasks:'tab-tasks',coverage:'tab-coverage',directories:'tab-directories',suggestions:'tab-suggestions',drift:'tab-drift'}[name]).classList.add('active');
 }
+/* ── "Where to find synobackup.conf" help popover ── */
+let helpTimer = null, helpPinned = false;
+
+function positionHelp(anchor) {
+  const pop = document.getElementById('help-popover');
+  const r = anchor.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = r.left + r.width / 2 - w / 2;
+  left = Math.max(12, Math.min(left, window.innerWidth - w - 12));
+  let top = r.bottom + 10;
+  if (top + h > window.innerHeight - 12) top = Math.max(12, r.top - h - 10);
+  pop.style.left = left + 'px';
+  pop.style.top  = top + 'px';
+}
+function showHelp(anchor) {
+  clearTimeout(helpTimer);
+  const pop = document.getElementById('help-popover');
+  pop.style.display = 'block';
+  positionHelp(anchor);
+}
+function scheduleHideHelp() {
+  if (helpPinned) return;
+  helpTimer = setTimeout(() => { document.getElementById('help-popover').style.display = 'none'; }, 160);
+}
+function toggleHelpPin(e, anchor) {
+  e.stopPropagation();
+  helpPinned = !helpPinned;
+  const pop = document.getElementById('help-popover');
+  pop.classList.toggle('pinned', helpPinned);
+  if (helpPinned) showHelp(anchor);
+  else pop.style.display = 'none';
+}
+document.addEventListener('click', (e) => {
+  if (!helpPinned) return;
+  const pop = document.getElementById('help-popover');
+  if (!pop.contains(e.target) && !e.target.closest('.help-i')) {
+    helpPinned = false;
+    pop.classList.remove('pinned');
+    pop.style.display = 'none';
+  }
+});
+
 /** Print / Save-as-PDF with a proper document title (used for the PDF filename & header) */
 function printReport() {
   const prev = document.title;
