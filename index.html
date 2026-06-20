@@ -224,6 +224,22 @@ section{margin-bottom:32px;}
 .ov-names{display:flex;flex-wrap:wrap;gap:5px;}
 .ov-name{font-size:11px;font-family:'JetBrains Mono',monospace;background:var(--bg1);border:1px solid var(--border);color:var(--t2);padding:2px 8px;border-radius:100px;}
 .ov-name.bad{color:var(--rose);border-color:var(--rose);background:var(--roseD);}
+.ov-321{cursor:help;}
+.ov-321-inner{position:relative;display:flex;flex-direction:column;gap:10px;}
+.ov-321-pop{position:absolute;z-index:50;top:calc(100% + 8px);left:0;right:0;display:none;max-height:320px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 16px 48px rgba(0,0,0,.35);}
+.ov-321:hover .ov-321-pop{display:block;}
+.ov-321-pop .p-title{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:8px;}
+.ov-321-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--borderL);}
+.ov-321-row:first-of-type{border-top:none;}
+.ov-321-path{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--t2);word-break:break-all;}
+.ov-321-miss{font-size:10px;font-weight:600;letter-spacing:.03em;padding:1px 7px;border-radius:100px;white-space:nowrap;flex-shrink:0;color:var(--rose);border:1px solid var(--rose);background:var(--roseD);}
+/* Large-list perf: skip layout/paint of off-screen rows so thousands of jobs reveal instantly */
+.task-card,.ret-row,.integ-row,.dir-card{content-visibility:auto;}
+.task-card{contain-intrinsic-size:auto 260px;}
+.ret-row{contain-intrinsic-size:auto 44px;}
+.integ-row{contain-intrinsic-size:auto 56px;}
+.dir-card{contain-intrinsic-size:auto 64px;}
+@media print{.task-card,.ret-row,.integ-row,.dir-card{content-visibility:visible;}}
 
 .dest-list{display:flex;flex-direction:column;gap:8px;}
 .dest-row{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
@@ -488,8 +504,8 @@ trans_type="image_local"
 backup_apps=["HyperBackup","LogCenter","OAuthService","StorageAnalyzer"]
 backup_apps_config=null
 backup_data_type="data"
-backup_filter={"exclude_list":[],"whitelist":[]}
-backup_folders=["/homes","/u001"]
+backup_filter={"exclude_list":["/media/video/"],"whitelist":[]}
+backup_folders=["/homes","/u001","/media"]
 backup_volumes=[]
 create_time=1668467618
 data_compress_type=1
@@ -520,8 +536,8 @@ trans_type="aws_s3"
 backup_apps=["HyperBackup"]
 backup_apps_config=null
 backup_data_type="data"
-backup_filter={"exclude_list":[],"whitelist":[]}
-backup_folders=["/media/photos","/media/video","/media/music"]
+backup_filter={"exclude_list":["/media/video/"],"whitelist":[]}
+backup_folders=["/media"]
 backup_volumes=[]
 create_time=1599600152
 data_compress_type=1
@@ -634,7 +650,36 @@ rotate_option="rotate_smart_recycle"
 sched_id=13
 support_cross_file_dedup=true
 target_dir="nas01_5.hbk"
-trans_encrypt=true`;
+trans_encrypt=true
+[repo_6]
+name=""
+remote_share="usbshare1-2"
+remote_ssl_cert_fingerprint=""
+target_type="image"
+trans_type="image_local"
+[task_6]
+backup_apps=[]
+backup_apps_config=null
+backup_data_type="data"
+backup_filter={"exclude_list":[],"whitelist":[]}
+backup_folders=["/media/video"]
+backup_volumes=[]
+create_time=1705000000
+data_compress_type=0
+enable_data_encrypt=true
+enable_delete=true
+enable_notify=true
+enable_version_rotation=true
+incheck_info="{\\"data_enable\\":true,\\"date\\":\\"2024/1/12\\",\\"time_limit\\":0}\\n"
+incheck_sched_id=14
+name="Local Video Archive"
+repo_id=6
+rotate_action="[[86400,3600,1],[2419200,86400,1],[0,604800,1]]"
+rotate_condition="[1,30]"
+rotate_option="rotate_smart_recycle"
+sched_id=15
+support_cross_file_dedup=true
+target_dir="nas01_6.hbk"`;
 
 /* ═══════════════════════════════════════════════════════════════════
    PARSER
@@ -793,13 +838,19 @@ function parseConfig(text) {
 /* ═══════════════════════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════════════════════ */
+const _dirTypeCache = new Map();
 function detectDirType(path) {
+  let cached = _dirTypeCache.get(path);
+  if (cached !== undefined) return cached;
   const p = path.toLowerCase();
-  if (/\/(homes?|users?|u\d+)/.test(p)) return 'home';
-  if (/\/(video|videos|music|photo|photos|media|movies|pictures|images|audio)/.test(p)) return 'media';
-  if (/\/(vmdatastore|virtualmachines?|vms?|vmware|virtualbox|qemu)/.test(p)) return 'vm';
-  if (/\/(backup|backups|archive|archives)/.test(p)) return 'backup';
-  return 'general';
+  const type =
+    /\/(homes?|users?|u\d+)/.test(p) ? 'home' :
+    /\/(video|videos|music|photo|photos|media|movies|pictures|images|audio)/.test(p) ? 'media' :
+    /\/(vmdatastore|virtualmachines?|vms?|vmware|virtualbox|qemu)/.test(p) ? 'vm' :
+    /\/(backup|backups|archive|archives)/.test(p) ? 'backup' :
+    'general';
+  _dirTypeCache.set(path, type);
+  return type;
 }
 
 /* ── Hierarchical path coverage helpers ─────────────────────────── */
@@ -849,65 +900,114 @@ function nearestAncestor(path, sortedPaths) {
     .sort((a, b) => b.length - a.length)[0] || null;
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   Coverage is computed once per task set and memoized. Rather than
+   re-deriving taskCoversPath() for every (path, task) pair (O(P·T·F·E)),
+   we build a path→{cloud,local} index by sweeping each task's source
+   folders over the sorted path list, then fold it into the same
+   deduplicated rows buildCoverageRows() always produced.
+   taskCoversPath()/nearestAncestor() above remain the reference semantics.
+─────────────────────────────────────────────────────────────────── */
+const _covCache = new WeakMap();
+const _sugCache = new WeakMap();
+
+/** First index i where arr[i] >= target (arr sorted ascending). */
+function lowerBound(arr, target) {
+  let lo = 0, hi = arr.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (arr[mid] < target) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+
+/** Longest proper ancestor of `path` present in `pathSet`, else null — O(depth). */
+function nearestAncestorIn(path, pathSet) {
+  for (let i = path.lastIndexOf('/'); i > 0; i = path.lastIndexOf('/', i - 1)) {
+    const anc = path.slice(0, i);
+    if (pathSet.has(anc)) return anc;
+  }
+  return (path.length > 1 && pathSet.has('/')) ? '/' : null;
+}
+
 /**
- * Produce a deduplicated, hierarchically-aware coverage row list.
- *
- * Rules:
- *  - Always show root paths (no ancestor in the path set).
- *  - Show child paths ONLY when their cloud+local coverage set differs from
- *    their nearest ancestor's coverage set.
- *  - Consecutive siblings (same nearest ancestor, same coverage fingerprint)
- *    are collapsed into a single "group" row with a count + path list.
+ * Build (and memoize) the coverage model for a task set:
+ *   { rows, allPaths, pathSet, cloudSets, localSets, getCov }
+ * `rows` is the deduplicated, hierarchically-aware row list:
+ *  - Always keep root paths (no ancestor in the path set).
+ *  - Keep a child only when its cloud+local coverage differs from its ancestor.
+ *  - Collapse consecutive identically-covered siblings into one group row.
  */
-function buildCoverageRows(tasks) {
+function computeCoverage(tasks) {
+  const cached = _covCache.get(tasks);
+  if (cached) return cached;
+
   const allPaths = [...new Set(tasks.flatMap(t => t.srcFolders))].sort();
+  const pathSet  = new Set(allPaths);
+  const n = allPaths.length;
 
-  function getCov(path) {
-    const cloud = tasks.filter(t => t.isCloud && taskCoversPath(path, t));
-    const local = tasks.filter(t => t.isLocal && taskCoversPath(path, t));
-    return { cloud, local };
+  // path → Set<task>; Set iteration order preserves task order (matches old filter()).
+  const cloudSets = new Map(), localSets = new Map();
+  for (const p of allPaths) { cloudSets.set(p, new Set()); localSets.set(p, new Set()); }
+
+  // Explicit sources are always covered; descendants are covered unless excluded.
+  const mark = (sets, t) => {
+    for (const src of t.srcFolders) {
+      const own = sets.get(src);
+      if (own) own.add(t);
+      const prefix = src.endsWith('/') ? src : src + '/';
+      for (let i = lowerBound(allPaths, prefix); i < n; i++) {
+        const p = allPaths[i];
+        if (!p.startsWith(prefix)) break;
+        if (!isExcluded(p, t)) sets.get(p).add(t);
+      }
+    }
+  };
+  for (const t of tasks) {
+    if (t.isCloud) mark(cloudSets, t);
+    if (t.isLocal) mark(localSets, t);
   }
 
-  function covKey(cov) {
-    return cov.cloud.map(t => t.id).sort().join(',') + '|' + cov.local.map(t => t.id).sort().join(',');
-  }
+  const covCache = new Map();
+  const getCov = p => {
+    let c = covCache.get(p);
+    if (!c) { c = { cloud: [...cloudSets.get(p)], local: [...localSets.get(p)] }; covCache.set(p, c); }
+    return c;
+  };
+  const ckCache = new Map();
+  const ckOf = p => {
+    let k = ckCache.get(p);
+    if (k === undefined) {
+      const cov = getCov(p);
+      k = cov.cloud.map(t => t.id).sort().join(',') + '|' + cov.local.map(t => t.id).sort().join(',');
+      ckCache.set(p, k);
+    }
+    return k;
+  };
 
-  // First pass: compute coverage for each path, decide whether to show
+  // First pass: keep roots, plus children whose coverage differs from their ancestor.
   const candidates = [];
   for (const path of allPaths) {
-    const anc = nearestAncestor(path, allPaths);
-    const cov = getCov(path);
-    const ck  = covKey(cov);
-    if (!anc) {
-      candidates.push({ path, cov, ck, anc, depth: 0 });
-    } else {
-      const ancCov = getCov(anc);
-      if (ck !== covKey(ancCov)) {
-        // Coverage changed relative to nearest ancestor → show this path
-        candidates.push({ path, cov, ck, anc, depth: 1 });
-      }
-      // else: same coverage as parent → suppressed (correctly collapsed)
-    }
+    const anc = nearestAncestorIn(path, pathSet);
+    const ck  = ckOf(path);
+    if (!anc) candidates.push({ path, cov: getCov(path), ck, anc, depth: 0 });
+    else if (ck !== ckOf(anc)) candidates.push({ path, cov: getCov(path), ck, anc, depth: 1 });
   }
 
-  // Second pass: collapse consecutive siblings with identical coverage into group rows
+  // Second pass: collapse consecutive identically-covered siblings into group rows.
   const rows = [];
   for (const c of candidates) {
     const prev = rows[rows.length - 1];
-    if (
-      prev &&
-      prev.anc === c.anc &&
-      prev.ck === c.ck &&
-      prev.depth === c.depth &&
-      prev.depth > 0   // only group children, not roots
-    ) {
+    if (prev && prev.anc === c.anc && prev.ck === c.ck && prev.depth === c.depth && prev.depth > 0)
       prev.paths.push(c.path);
-    } else {
-      rows.push({ ...c, paths: [c.path] });
-    }
+    else rows.push({ ...c, paths: [c.path] });
   }
 
-  return rows;
+  const result = { rows, allPaths, pathSet, cloudSets, localSets, getCov };
+  _covCache.set(tasks, result);
+  return result;
+}
+
+/** Deduplicated, hierarchically-aware coverage row list (memoized). */
+function buildCoverageRows(tasks) {
+  return computeCoverage(tasks).rows;
 }
 
 function fmtDate(ts) {
@@ -937,6 +1037,8 @@ function daysSince(dateStr) {
    SUGGESTIONS ENGINE
 ═══════════════════════════════════════════════════════════════════ */
 function generateSuggestions(tasks) {
+  const memo = _sugCache.get(tasks);
+  if (memo) return memo;
   const sugs = [];
   const add = (sev, icon, title, detail, names=[]) =>
     sugs.push({severity:sev, icon, title, detail, names});
@@ -947,13 +1049,35 @@ function generateSuggestions(tasks) {
   const rootRows = covRows.filter(r => r.depth === 0);
   const allCovRows = covRows; // all rows for gap analysis
 
-  // Paths with NO cloud coverage (any coverage row, depth 0 or 1)
-  const noCloud = allCovRows.filter(r => r.cov.cloud.length === 0);
-  if (noCloud.length) {
-    const pathLabels = noCloud.map(r => r.paths.length===1 ? r.paths[0] : `${r.paths[0]}… (+${r.paths.length-1})`);
-    add('high','☁️','No cloud/off-site backup for some paths',
-      `These paths only have local backups. A fire, flood, or NAS failure would cause total data loss. Add S3 cloud tasks covering: ${pathLabels.join(', ')}.`,
-      pathLabels);
+  // Compact label for a (possibly grouped) coverage row
+  const rowLabel = r => r.paths.length===1 ? r.paths[0] : `${r.paths[0]}… (+${r.paths.length-1})`;
+
+  // Off-site coverage existing elsewhere in the same directory subtree signals a
+  // deliberate, partial exclusion rather than a wholesale gap.
+  const hasCloudDescendant = path =>
+    allCovRows.some(o => o.cov.cloud.length > 0 && o.paths.some(p => p !== path && isChildOf(p, path)));
+  const hasCloudAncestor = path =>
+    allCovRows.some(o => o.cov.cloud.length > 0 && o.paths.some(p => p !== path && isChildOf(path, p)));
+  const relatedCloud = r => hasCloudAncestor(r.paths[0]) || hasCloudDescendant(r.paths[0]);
+
+  const noCloudRows = allCovRows.filter(r => r.cov.cloud.length === 0);
+
+  // Total off-site gap: a top-level dir with no off-site copy anywhere beneath it → High
+  const fullGap = noCloudRows.filter(r => r.depth === 0 && !relatedCloud(r));
+  if (fullGap.length) {
+    const labels = fullGap.map(rowLabel);
+    add('high','☁️','No off-site backup for some directories',
+      `These directories — and everything beneath them — have only local backups. A fire, flood, theft, or NAS failure would mean total loss with no off-site copy. Add S3 cloud tasks covering: ${labels.join(', ')}.`,
+      labels);
+  }
+
+  // Partial coverage: nearby paths reach the cloud but these don't → likely deliberate (Medium)
+  const partialGap = noCloudRows.filter(relatedCloud);
+  if (partialGap.length) {
+    const labels = partialGap.map(rowLabel);
+    add('medium','☁️','Some paths excluded from cloud backup',
+      `These paths have local backups only, but related directories are backed up off-site — so this looks like a deliberate exclusion (e.g. large, re-downloadable media). If intentional, no action needed; otherwise add them to a cloud task: ${labels.join(', ')}.`,
+      labels);
   }
 
   // Paths with no local coverage
@@ -966,7 +1090,7 @@ function generateSuggestions(tasks) {
 
   // Full 3-2-1 good for all root paths
   const allRoot321 = rootRows.every(r => r.cov.cloud.length>0 && r.cov.local.length>0);
-  if (allRoot321 && rootRows.length > 0 && noCloud.length === 0) {
+  if (allRoot321 && rootRows.length > 0) {
     add('good','✅','Core directories satisfy 3-2-1 rule',
       `All root-level source directories have both cloud and local coverage.`);
   }
@@ -1074,6 +1198,7 @@ function generateSuggestions(tasks) {
 
   const order = {high:0,medium:1,low:2,good:3};
   sugs.sort((a,b) => order[a.severity]-order[b.severity]);
+  _sugCache.set(tasks, sugs);
   return sugs;
 }
 
@@ -1152,7 +1277,8 @@ function renderOverview(tasks) {
   /* ── 2-4. Coverage & risk cards ── */
   const allDirs = [...new Set(tasks.flatMap(t => t.srcFolders))];
   const cloudTasks = tasks.filter(t => t.isCloud);
-  const exposed = allDirs.filter(d => !cloudTasks.some(t => taskCoversPath(d, t)));
+  const { cloudSets } = computeCoverage(tasks);
+  const exposed = allDirs.filter(d => cloudSets.get(d).size === 0);
   const exposedPct = allDirs.length ? Math.round(exposed.length / allDirs.length * 100) : 0;
 
   const rootRows = buildCoverageRows(tasks).filter(r => r.depth === 0);
@@ -1166,12 +1292,34 @@ function renderOverview(tasks) {
   const blastCol = exposed.length === 0 ? 'var(--green)' : exposedPct >= 50 ? 'var(--rose)' : 'var(--amber)';
   const c321Col  = ok321 === rootRows.length ? 'var(--green)' : 'var(--amber)';
 
+  const fail321 = rootRows
+    .filter(r => !(r.cov.cloud.length > 0 && r.cov.local.length > 0))
+    .map(r => {
+      const noCloud = r.cov.cloud.length === 0, noLocal = r.cov.local.length === 0;
+      const miss = noCloud && noLocal ? 'no off-site or local' : noCloud ? 'no off-site copy' : 'no local copy';
+      return { path: r.paths[0], miss };
+    });
+  const pop321 = fail321.length
+    ? `<div class="ov-321-pop"><div class="p-title">Directories missing 3-2-1 (${fail321.length})</div>${fail321.map(f => `<div class="ov-321-row"><span class="ov-321-path">${f.path}</span><span class="ov-321-miss">${f.miss}</span></div>`).join('')}</div>`
+    : `<div class="ov-321-pop"><div class="p-title">✓ All root directories satisfy the 3-2-1 rule</div></div>`;
+
+  // Cap chip walls so cards stay a consistent height with hundreds of dirs.
+  const CHIP_CAP = 14;
+  const chips = (list, cls = '') => {
+    const shown = list.slice(0, CHIP_CAP).map(d => `<span class="ov-name ${cls}">${d}</span>`).join('');
+    const more = list.length > CHIP_CAP ? `<span class="ov-name" style="opacity:.65;">+${list.length - CHIP_CAP} more</span>` : '';
+    return `<div class="ov-names">${shown}${more}</div>`;
+  };
+
   document.getElementById('ov-cards').innerHTML = `
-    <div class="ov-card">
-      <div class="ov-card-head"><span class="ico">🎯</span>3-2-1 Rule</div>
-      <div class="ov-big" style="color:${c321Col};">${ok321}<small> / ${rootRows.length} dirs</small></div>
-      <div class="ov-sub">Root source directories with both an off-site and a local copy.</div>
-      <div class="ov-rule"><span>3 copies</span><span>2 media</span><span>1 off-site</span></div>
+    <div class="ov-card ov-321">
+      <div class="ov-321-inner">
+        <div class="ov-card-head"><span class="ico">🎯</span>3-2-1 Rule</div>
+        <div class="ov-big" style="color:${c321Col};">${ok321}<small> / ${rootRows.length} dirs</small></div>
+        <div class="ov-sub">Root source directories with both an off-site and a local copy.</div>
+        <div class="ov-rule"><span>3 copies</span><span>2 media</span><span>1 off-site</span></div>
+        ${pop321}
+      </div>
     </div>
     <div class="ov-card">
       <div class="ov-card-head"><span class="ico">💥</span>Blast Radius</div>
@@ -1179,7 +1327,7 @@ function renderOverview(tasks) {
       <div class="ov-sub">${exposed.length === 0
         ? 'Every source directory has an off-site copy — a NAS loss would not orphan any data.'
         : `Local-only (${exposedPct}%). If the NAS is lost, stolen, or destroyed, these have no off-site copy:`}</div>
-      ${exposed.length ? `<div class="ov-names">${exposed.map(d => `<span class="ov-name bad">${d}</span>`).join('')}</div>` : ''}
+      ${exposed.length ? chips(exposed, 'bad') : ''}
     </div>
     <div class="ov-card">
       <div class="ov-card-head"><span class="ico">🔐</span>Encryption Posture</div>
@@ -1188,8 +1336,8 @@ function renderOverview(tasks) {
         &nbsp;·&nbsp;
         In transit: <span style="color:${cloudTasks.length&&transitOk===cloudTasks.length?'var(--green)':'var(--amber)'};">${transitOk}/${cloudTasks.length} cloud</span>
       </div>
-      ${unencNames.length ? `<div class="ov-sub">Unencrypted at rest:</div><div class="ov-names">${unencNames.map(n=>`<span class="ov-name bad">${n}</span>`).join('')}</div>` : ''}
-      ${noTransitNames.length ? `<div class="ov-sub">Cloud without transit encryption:</div><div class="ov-names">${noTransitNames.map(n=>`<span class="ov-name">${n}</span>`).join('')}</div>` : ''}
+      ${unencNames.length ? `<div class="ov-sub">Unencrypted at rest:</div>${chips(unencNames, 'bad')}` : ''}
+      ${noTransitNames.length ? `<div class="ov-sub">Cloud without transit encryption:</div>${chips(noTransitNames)}` : ''}
       ${!unencNames.length && !noTransitNames.length ? `<div class="ov-sub">All backups are encrypted at rest and in transit.</div>` : ''}
     </div>`;
 
@@ -1664,24 +1812,53 @@ function renderDrift() {
   `;
 }
 
+let _renderers = {};
+let _renderedTabs = new Set();
+
+/** Build a tab's content once. Guarantees a tab is ready before it is shown
+ *  (switchTab) or printed (printReport), so deferred tabs are never empty. */
+function ensureRendered(name) {
+  if (_renderedTabs.has(name)) return;
+  const fn = _renderers[name];
+  if (!fn) return;
+  fn();
+  _renderedTabs.add(name);
+}
+
 function renderAll(tasks, filename) {
   if (!tasks.length) { alert('No backup tasks found in this file.\n\nThis app expects a Synology Hyper Backup synobackup.conf with [repo_N] and [task_N] sections.'); return; }
   CURRENT_TASKS = tasks;
   CURRENT_FILE  = filename || 'config';
+
+  // Per-tab renderers (coverage tab owns both the matrix and the integrity list).
+  _renderers = {
+    overview:    () => renderOverview(tasks),
+    tasks:       () => renderTaskCards(tasks),
+    coverage:    () => { renderCoverage(tasks); renderIntegrity(tasks); },
+    directories: () => renderDirectories(tasks),
+    suggestions: () => renderSuggestions(tasks),
+    drift:       () => renderDrift(),
+  };
+  _renderedTabs = new Set();
+
+  // Eager: the always-visible stats bar + the default (Overview) tab only,
+  // so the first paint is fast even with thousands of jobs.
   renderStats(tasks);
-  renderOverview(tasks);
-  renderTaskCards(tasks);
-  renderCoverage(tasks);
-  renderIntegrity(tasks);
-  renderDirectories(tasks);
-  renderSuggestions(tasks);
-  renderDrift();
+  ensureRendered('overview');
+
   document.getElementById('upload-view').style.display = 'none';
   document.getElementById('dashboard-view').style.display = 'block';
   document.getElementById('file-badge').textContent = filename || 'config loaded';
   document.getElementById('file-badge').style.display = 'block';
   document.getElementById('btn-reset').style.display = 'flex';
   document.getElementById('btn-export').style.display = 'flex';
+
+  // Prerender the remaining tabs in the background, one per idle slice, after
+  // the Overview has painted — keeps first paint fast and the main thread free.
+  const queue = Object.keys(_renderers).filter(n => !_renderedTabs.has(n));
+  const idle = window.requestIdleCallback || (cb => setTimeout(cb, 1));
+  const pump = () => { if (queue.length) { ensureRendered(queue.shift()); idle(pump); } };
+  idle(pump);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1717,6 +1894,7 @@ function resetApp() {
   document.querySelectorAll('.tab-content').forEach((c,i) => c.classList.toggle('active', i===0));
 }
 function switchTab(name, el) {
+  ensureRendered(name);
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
@@ -1767,6 +1945,7 @@ document.addEventListener('click', (e) => {
 
 /** Print / Save-as-PDF with a proper document title (used for the PDF filename & header) */
 function printReport() {
+  Object.keys(_renderers).forEach(ensureRendered);   // ensure every tab is built for the PDF
   const prev = document.title;
   document.title = 'SynoAnalyzer Report';
   const restore = () => { document.title = prev; window.removeEventListener('afterprint', restore); };
